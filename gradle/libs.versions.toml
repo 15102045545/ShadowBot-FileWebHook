@@ -1,0 +1,104 @@
+# ============================================
+# Gradle 版本目录 (Version Catalog)
+# ============================================
+# 本文件集中管理项目所有依赖的版本号
+# 使用方式：在 build.gradle.kts 中通过 libs.xxx 引用
+
+# --------------------------------------------
+# [versions] 版本号定义
+# --------------------------------------------
+[versions]
+# Kotlin 语言版本
+kotlin = "2.0.21"
+# Compose Multiplatform UI 框架版本
+compose-multiplatform = "1.7.1"
+# Ktor HTTP 框架版本（服务端 + 客户端）
+ktor = "3.0.2"
+# SQLDelight 数据库框架版本
+sqldelight = "2.0.2"
+# Koin 依赖注入框架版本
+koin = "4.0.0"
+# Kotlinx Serialization JSON 序列化版本
+kotlinx-serialization = "1.7.3"
+# Kotlinx Coroutines 协程版本
+kotlinx-coroutines = "1.9.0"
+# Kotlinx DateTime 日期时间库版本
+kotlinx-datetime = "0.6.1"
+# SLF4J 日志门面版本
+slf4j = "2.0.16"
+# Logback 日志实现版本
+logback = "1.5.12"
+
+# --------------------------------------------
+# [libraries] 依赖库定义
+# --------------------------------------------
+[libraries]
+
+# -------- Ktor Server 服务端依赖 --------
+# Ktor 服务端核心库
+ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
+# CIO 引擎（基于协程的异步 IO）
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+# 内容协商插件（JSON 序列化支持）
+ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
+# 状态页插件（错误处理）
+ktor-server-status-pages = { module = "io.ktor:ktor-server-status-pages", version.ref = "ktor" }
+# CORS 跨域支持插件
+ktor-server-cors = { module = "io.ktor:ktor-server-cors", version.ref = "ktor" }
+
+# -------- Ktor Client 客户端依赖 --------
+# Ktor 客户端核心库（用于回调外部服务）
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+# CIO 引擎
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+# 内容协商插件
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+
+# -------- Ktor 序列化 --------
+# Ktor + Kotlinx Serialization JSON 集成
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+# -------- Kotlinx 扩展库 --------
+# JSON 序列化/反序列化
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+# 协程核心库
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+# 协程 Swing 调度器（Desktop UI 线程）
+kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinx-coroutines" }
+# 跨平台日期时间库
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+
+# -------- SQLDelight 数据库 --------
+# SQLDelight 运行时
+sqldelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqldelight" }
+# SQLDelight 协程扩展
+sqldelight-coroutines = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqldelight" }
+# SQLite JDBC 驱动（Desktop 平台）
+sqldelight-sqlite-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqldelight" }
+
+# -------- Koin 依赖注入 --------
+# Koin 核心库
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+# Koin Compose 集成
+koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
+
+# -------- 日志 --------
+# SLF4J 日志门面 API
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+# Logback 日志实现
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+
+# --------------------------------------------
+# [plugins] Gradle 插件定义
+# --------------------------------------------
+[plugins]
+# Kotlin Multiplatform 插件
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+# Kotlin 序列化编译器插件
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+# Compose Multiplatform 插件
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
+# Compose 编译器插件
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+# SQLDelight 插件
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }

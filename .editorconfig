@@ -1,0 +1,57 @@
+# EditorConfig 配置
+# https://editorconfig.org
+
+root = true
+
+# 所有文件的默认配置
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Kotlin 文件
+[*.{kt,kts}]
+indent_size = 4
+
+# Gradle 文件
+[*.gradle]
+indent_size = 4
+
+# TOML 文件
+[*.toml]
+indent_size = 2
+
+# XML 文件
+[*.xml]
+indent_size = 2
+
+# JSON 文件
+[*.json]
+indent_size = 2
+
+# YAML 文件
+[*.{yml,yaml}]
+indent_size = 2
+
+# Markdown 文件
+[*.md]
+trim_trailing_whitespace = false
+
+# SQL 文件
+[*.sq]
+indent_size = 4
+
+# Properties 文件
+[*.properties]
+indent_size = 4
+
+# Batch 脚本
+[*.{bat,cmd}]
+end_of_line = crlf
+
+# Shell 脚本
+[*.sh]
+end_of_line = lf

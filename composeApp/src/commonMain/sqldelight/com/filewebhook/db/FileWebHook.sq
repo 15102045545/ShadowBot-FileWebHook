@@ -1,0 +1,239 @@
+-- ============================================
+-- FileWebHook 数据库定义文件
+-- ============================================
+-- 本文件定义了 SQLDelight 数据库的表结构和查询语句
+-- SQLDelight 会根据本文件自动生成类型安全的 Kotlin 代码
+
+-- ============================================
+-- 表结构定义
+-- ============================================
+
+-- --------------------------------------------
+-- 用户表 (users)
+-- --------------------------------------------
+-- 存储可以调用 FileWebHook 的外部服务用户信息
+-- 每个用户有唯一的 userId 和 secretKey 用于身份验证
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 自增主键
+    userId TEXT NOT NULL UNIQUE,           -- 用户唯一标识 (UUID)
+    name TEXT NOT NULL,                    -- 用户名称
+    remark TEXT,                           -- 备注信息（可选）
+    secretKey TEXT NOT NULL,               -- 密钥 (UUID)，用于 API 身份验证
+    callbackUrl TEXT NOT NULL,             -- 回调地址（外部服务的 HTTP 地址）
+    createdAt TEXT NOT NULL,               -- 创建时间 (ISO 8601 格式)
+    updatedAt TEXT NOT NULL                -- 更新时间 (ISO 8601 格式)
+);
+
+-- --------------------------------------------
+-- 触发器表 (triggers)
+-- --------------------------------------------
+-- 存储 FileWebHook 触发器配置
+-- 每个触发器对应一个影刀 RPA 应用
+CREATE TABLE triggers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 自增主键，同时作为 triggerId
+    name TEXT NOT NULL,                    -- 触发器名称
+    description TEXT,                      -- 触发器描述（可选）
+    remark TEXT,                           -- 备注信息（可选）
+    folderPath TEXT NOT NULL,              -- 文件夹完整路径（影刀文件触发器监听此路径）
+    createdAt TEXT NOT NULL                -- 创建时间 (ISO 8601 格式)
+);
+
+-- --------------------------------------------
+-- 用户触发器权限表 (user_trigger_permissions)
+-- --------------------------------------------
+-- 多对多关联表：定义哪些用户可以调用哪些触发器
+-- 使用级联删除：用户或触发器删除时自动清理关联记录
+CREATE TABLE user_trigger_permissions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 自增主键
+    userId TEXT NOT NULL,                  -- 用户 ID（关联 users 表）
+    triggerId INTEGER NOT NULL,            -- 触发器 ID（关联 triggers 表）
+    createdAt TEXT NOT NULL,               -- 创建时间 (ISO 8601 格式)
+    FOREIGN KEY (userId) REFERENCES users(userId) ON DELETE CASCADE,      -- 外键约束：用户删除时级联删除
+    FOREIGN KEY (triggerId) REFERENCES triggers(id) ON DELETE CASCADE,    -- 外键约束：触发器删除时级联删除
+    UNIQUE(userId, triggerId)              -- 唯一约束：防止重复授权
+);
+
+-- --------------------------------------------
+-- 执行记录表 (execution_logs)
+-- --------------------------------------------
+-- 记录所有通过 FileWebHook 的请求执行情况
+-- 包含完整的执行生命周期信息：请求 -> 影刀执行 -> 回调
+CREATE TABLE execution_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,  -- 自增主键
+    eventId TEXT NOT NULL UNIQUE,          -- 执行事件唯一标识（格式：{triggerId}-{时间戳}）
+    triggerId INTEGER NOT NULL,            -- 触发器 ID
+    userId TEXT NOT NULL,                  -- 调用用户 ID
+    status TEXT NOT NULL,                  -- 执行状态（REQUESTED/QUEUED/EXECUTING/COMPLETED 等）
+    requestTime TEXT NOT NULL,             -- 外部服务请求到达时间
+    shadowbotStartTime TEXT,               -- 影刀开始执行时间（收到 /trigged 回调）
+    shadowbotEndTime TEXT,                 -- 影刀执行完毕时间（收到 /notify 回调）
+    totalDuration INTEGER,                 -- 总耗时（毫秒）：从请求到回调完成
+    shadowbotDuration INTEGER,             -- 影刀执行耗时（毫秒）
+    requestParams TEXT NOT NULL,           -- 入参参数（JSON 字符串）
+    responseParams TEXT,                   -- 出参参数（JSON 字符串）
+    responseCode TEXT,                     -- 影刀响应码
+    responseMessage TEXT,                  -- 影刀响应消息
+    createdAt TEXT NOT NULL,               -- 记录创建时间
+    updatedAt TEXT NOT NULL                -- 记录更新时间
+);
+
+-- --------------------------------------------
+-- 系统设置表 (settings)
+-- --------------------------------------------
+-- 键值对存储系统配置
+-- 包括：triggerFilesPath、queueMaxLength、fileWebHookName 等
+CREATE TABLE settings (
+    settingKey TEXT PRIMARY KEY,           -- 设置键名（唯一）
+    settingValue TEXT NOT NULL             -- 设置值
+);
+
+
+-- ============================================
+-- 查询语句定义
+-- ============================================
+-- SQLDelight 会为每个查询生成对应的 Kotlin 函数
+
+-- --------------------------------------------
+-- 用户相关查询
+-- --------------------------------------------
+
+-- 查询所有用户（按创建时间倒序）
+selectAllUsers:
+SELECT * FROM users ORDER BY createdAt DESC;
+
+-- 根据 userId 查询单个用户
+selectUserById:
+SELECT * FROM users WHERE userId = ?;
+
+-- 验证用户身份：同时匹配 userId 和 secretKey
+selectUserByIdAndSecretKey:
+SELECT * FROM users WHERE userId = ? AND secretKey = ?;
+
+-- 插入新用户
+insertUser:
+INSERT INTO users (userId, name, remark, secretKey, callbackUrl, createdAt, updatedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+-- 更新用户基本信息（不含密钥）
+updateUser:
+UPDATE users SET name = ?, remark = ?, callbackUrl = ?, updatedAt = ? WHERE userId = ?;
+
+-- 重置用户密钥
+updateUserSecretKey:
+UPDATE users SET secretKey = ?, updatedAt = ? WHERE userId = ?;
+
+-- 删除用户
+deleteUser:
+DELETE FROM users WHERE userId = ?;
+
+-- --------------------------------------------
+-- 触发器相关查询
+-- --------------------------------------------
+
+-- 查询所有触发器（按 ID 升序）
+selectAllTriggers:
+SELECT * FROM triggers ORDER BY id ASC;
+
+-- 根据 ID 查询单个触发器
+selectTriggerById:
+SELECT * FROM triggers WHERE id = ?;
+
+-- 获取最大的触发器 ID（用于生成新 ID）
+selectLastTriggerId:
+SELECT MAX(id) AS lastId FROM triggers;
+
+-- 插入新触发器
+insertTrigger:
+INSERT INTO triggers (name, description, remark, folderPath, createdAt)
+VALUES (?, ?, ?, ?, ?);
+
+-- --------------------------------------------
+-- 权限相关查询
+-- --------------------------------------------
+
+-- 查询用户拥有的所有触发器权限
+selectPermissionsByUserId:
+SELECT triggerId FROM user_trigger_permissions WHERE userId = ?;
+
+-- 检查用户是否有特定触发器的权限
+selectPermissionByUserAndTrigger:
+SELECT * FROM user_trigger_permissions WHERE userId = ? AND triggerId = ?;
+
+-- 授予用户触发器权限
+insertPermission:
+INSERT INTO user_trigger_permissions (userId, triggerId, createdAt)
+VALUES (?, ?, ?);
+
+-- 删除用户的所有权限（用于重新分配权限）
+deletePermissionsByUserId:
+DELETE FROM user_trigger_permissions WHERE userId = ?;
+
+-- 删除单个权限
+deletePermission:
+DELETE FROM user_trigger_permissions WHERE userId = ? AND triggerId = ?;
+
+-- --------------------------------------------
+-- 执行记录相关查询
+-- --------------------------------------------
+
+-- 查询所有执行记录（按创建时间倒序，带分页限制）
+selectAllExecutionLogs:
+SELECT * FROM execution_logs ORDER BY createdAt DESC LIMIT ?;
+
+-- 查询指定触发器的执行记录
+selectExecutionLogsByTriggerId:
+SELECT * FROM execution_logs WHERE triggerId = ? ORDER BY createdAt DESC LIMIT ?;
+
+-- 查询指定状态的执行记录
+selectExecutionLogsByStatus:
+SELECT * FROM execution_logs WHERE status = ? ORDER BY createdAt DESC LIMIT ?;
+
+-- 根据 eventId 查询单条执行记录
+selectExecutionLogByEventId:
+SELECT * FROM execution_logs WHERE eventId = ?;
+
+-- 插入新的执行记录（初始状态）
+insertExecutionLog:
+INSERT INTO execution_logs (eventId, triggerId, userId, status, requestTime, requestParams, createdAt, updatedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+-- 更新执行状态
+updateExecutionLogStatus:
+UPDATE execution_logs SET status = ?, updatedAt = ? WHERE eventId = ?;
+
+-- 更新影刀开始执行时间
+updateExecutionLogShadowbotStart:
+UPDATE execution_logs SET status = ?, shadowbotStartTime = ?, updatedAt = ? WHERE eventId = ?;
+
+-- 更新执行完成信息（包含响应数据和耗时统计）
+updateExecutionLogComplete:
+UPDATE execution_logs SET
+    status = ?,
+    shadowbotEndTime = ?,
+    totalDuration = ?,
+    shadowbotDuration = ?,
+    responseParams = ?,
+    responseCode = ?,
+    responseMessage = ?,
+    updatedAt = ?
+WHERE eventId = ?;
+
+-- --------------------------------------------
+-- 系统设置相关查询
+-- --------------------------------------------
+
+-- 查询所有设置
+selectAllSettings:
+SELECT * FROM settings;
+
+-- 根据键名查询设置值
+selectSettingByKey:
+SELECT settingValue FROM settings WHERE settingKey = ?;
+
+-- 插入或更新设置（UPSERT）
+upsertSetting:
+INSERT OR REPLACE INTO settings (settingKey, settingValue) VALUES (?, ?);
+
+-- 删除设置
+deleteSetting:
+DELETE FROM settings WHERE settingKey = ?;
