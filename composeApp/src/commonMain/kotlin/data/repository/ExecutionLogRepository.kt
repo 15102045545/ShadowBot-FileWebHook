@@ -64,6 +64,17 @@ class ExecutionLogRepository(private val database: FileWebHookDatabase) {
     }
 
     /**
+     * 根据用户 ID 获取执行记录
+     *
+     * @param userId 用户 ID
+     * @param limit 返回记录数上限，默认 100 条
+     * @return 该用户的执行记录列表
+     */
+    suspend fun getLogsByUserId(userId: String, limit: Long = 100): List<ExecutionLog> = withContext(Dispatchers.IO) {
+        queries.selectExecutionLogsByUserId(userId, limit).executeAsList().map { it.toExecutionLog() }
+    }
+
+    /**
      * 根据事件 ID 获取执行记录
      *
      * @param eventId 事件唯一标识
@@ -71,6 +82,74 @@ class ExecutionLogRepository(private val database: FileWebHookDatabase) {
      */
     suspend fun getLogByEventId(eventId: String): ExecutionLog? = withContext(Dispatchers.IO) {
         queries.selectExecutionLogByEventId(eventId).executeAsOneOrNull()?.toExecutionLog()
+    }
+
+    /**
+     * 多条件组合查询执行记录
+     *
+     * 支持按触发器、用户、状态、时间区间、事件ID进行组合筛选
+     *
+     * @param triggerId 触发器 ID（可选）
+     * @param userId 用户 ID（可选）
+     * @param status 执行状态（可选）
+     * @param eventId 事件 ID 关键字（可选，支持模糊匹配）
+     * @param startTime 开始时间（可选）
+     * @param endTime 结束时间（可选）
+     * @param limit 返回记录数上限
+     * @param offset 偏移量（用于分页）
+     * @return 符合条件的执行记录列表
+     */
+    suspend fun getLogsByFilters(
+        triggerId: Long? = null,
+        userId: String? = null,
+        status: ExecutionStatus? = null,
+        eventId: String? = null,
+        startTime: String? = null,
+        endTime: String? = null,
+        limit: Long = 50,
+        offset: Long = 0
+    ): List<ExecutionLog> = withContext(Dispatchers.IO) {
+        queries.selectExecutionLogsByFilters(
+            triggerId = triggerId,
+            userId = userId,
+            status = status?.name,
+            eventId = eventId?.takeIf { it.isNotBlank() },
+            startTime = startTime,
+            endTime = endTime,
+            limit = limit,
+            offset = offset
+        ).executeAsList().map { it.toExecutionLog() }
+    }
+
+    /**
+     * 统计符合条件的执行记录总数
+     *
+     * 用于分页计算总页数
+     *
+     * @param triggerId 触发器 ID（可选）
+     * @param userId 用户 ID（可选）
+     * @param status 执行状态（可选）
+     * @param eventId 事件 ID 关键字（可选，支持模糊匹配）
+     * @param startTime 开始时间（可选）
+     * @param endTime 结束时间（可选）
+     * @return 符合条件的记录总数
+     */
+    suspend fun countLogsByFilters(
+        triggerId: Long? = null,
+        userId: String? = null,
+        status: ExecutionStatus? = null,
+        eventId: String? = null,
+        startTime: String? = null,
+        endTime: String? = null
+    ): Long = withContext(Dispatchers.IO) {
+        queries.countExecutionLogsByFilters(
+            triggerId = triggerId,
+            userId = userId,
+            status = status?.name,
+            eventId = eventId?.takeIf { it.isNotBlank() },
+            startTime = startTime,
+            endTime = endTime
+        ).executeAsOne()
     }
 
     /**
@@ -137,7 +216,7 @@ class ExecutionLogRepository(private val database: FileWebHookDatabase) {
     /**
      * 更新影刀开始执行时间
      *
-     * 当收到影刀 /trigged 回调时调用
+     * 当收到影刀 /triggered 回调时调用
      * 状态从 QUEUED/WAITING 变为 EXECUTING
      *
      * @param eventId 事件 ID

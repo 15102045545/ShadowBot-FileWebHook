@@ -122,7 +122,7 @@ cd ShadowBot-FileWebHook
 
 1. 监听路径设置为触发器的文件夹路径
 2. 监听文件名设置为 `request.json`
-3. 在机器人流程开始时调用 FileWebHook 的 `/trigged` 接口
+3. 在机器人流程开始时调用 FileWebHook 的 `/triggered` 接口
 4. 在机器人流程结束时调用 FileWebHook 的 `/notify` 接口
 
 ## API 文档
@@ -172,7 +172,7 @@ cd ShadowBot-FileWebHook
 
 ### 影刀回调接口
 
-#### POST /trigged
+#### POST /triggered
 
 影刀开始执行时调用。
 

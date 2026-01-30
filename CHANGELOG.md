@@ -22,7 +22,7 @@
 
 #### 核心功能
 - HTTP 触发执行接口 (`POST /trigger/execute`)
-- 影刀开始执行回调接口 (`POST /trigged`)
+- 影刀开始执行回调接口 (`POST /triggered`)
 - 影刀执行完成回调接口 (`POST /notify`)
 - 外部服务执行结果回调
 

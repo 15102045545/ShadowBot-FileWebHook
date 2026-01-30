@@ -65,7 +65,12 @@ fun App() {
         val triggerViewModel = remember { TriggerViewModel(triggerRepository) }
         val userViewModel = remember { UserViewModel(userRepository, triggerRepository, permissionRepository) }
         val settingsViewModel = remember { SettingsViewModel(settingsRepository, server, taskQueue) }
-        val executionLogViewModel = remember { ExecutionLogViewModel(executionLogRepository, triggerRepository) }
+        val executionLogViewModel = remember { ExecutionLogViewModel(executionLogRepository, triggerRepository, userRepository) }
+
+        // 启动时自动启动服务
+        LaunchedEffect(Unit) {
+            settingsViewModel.autoStartServerOnLaunch()
+        }
 
         // 主布局：左右分栏
         Row(

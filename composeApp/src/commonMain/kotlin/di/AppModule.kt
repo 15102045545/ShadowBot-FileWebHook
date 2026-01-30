@@ -50,7 +50,7 @@ val domainModule = module {
     single { FileService(get(), get()) }
 
     // 任务队列（核心调度组件）
-    single { TaskQueue(get(), get(), get(), get()) }
+    single { TaskQueue(get(), get(), get(), get(), get()) }
 }
 
 /**

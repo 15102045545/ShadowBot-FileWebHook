@@ -212,7 +212,7 @@ FileWebHook 作为中间件，利用影刀现有的文件触发器能力，将 H
 | triggerId | 触发器ID |
 | userId | 调用用户ID |
 | 入参时间 | 外部服务请求到达的时间 |
-| 影刀开始执行时间 | 收到 /trigged 回调的时间 |
+| 影刀开始执行时间 | 收到 /triggered 回调的时间 |
 | 影刀执行完毕通知时间 | 收到 /notify 回调的时间 |
 | 总耗时 | 从入参到回调完成的总时间(ms) |
 | 影刀执行耗时 | 影刀实际执行时间(ms) |
@@ -307,7 +307,7 @@ Request Body:
 
 #### 5.2.1 通知开始执行
 ```
-POST /trigged
+POST /triggered
 
 Request Body:
 {
@@ -644,7 +644,7 @@ embeddedServer(CIO, port = 8089, host = "0.0.0.0") {
     install(StatusPages) { /* 异常处理 */ }
     routing {
         post("/trigger/execute") { /* 触发执行 */ }
-        post("/trigged") { /* 影刀开始执行回调 */ }
+        post("/triggered") { /* 影刀开始执行回调 */ }
         post("/notify") { /* 影刀执行完成回调 */ }
     }
 }.start(wait = false)

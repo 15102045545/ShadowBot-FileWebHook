@@ -15,6 +15,7 @@ import data.model.ExecutionStatus
 import data.model.ExternalCallbackRequest
 import data.repository.ExecutionLogRepository
 import data.repository.SettingsRepository
+import data.repository.UserRepository
 import domain.service.FileService
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -74,12 +75,14 @@ data class EnqueueResult(
  *
  * @property executionLogRepository 执行记录仓库
  * @property settingsRepository 设置仓库
+ * @property userRepository 用户仓库
  * @property fileService 文件服务
  * @property callbackClient 回调客户端
  */
 class TaskQueue(
     private val executionLogRepository: ExecutionLogRepository,
     private val settingsRepository: SettingsRepository,
+    private val userRepository: UserRepository,
     private val fileService: FileService,
     private val callbackClient: CallbackClient
 ) {
@@ -137,6 +140,28 @@ class TaskQueue(
         consumerJob?.cancel()
         taskChannel?.close()
         taskChannel = null
+    }
+
+    /**
+     * 清空队列并停止
+     *
+     * 清空所有待处理任务，取消消费者协程并关闭 Channel
+     * 用于重启服务时丢弃所有排队中的任务
+     */
+    suspend fun clearAndStop() {
+        // 清空待处理任务列表
+        mutex.withLock {
+            pendingTasks.clear()
+            _queueSize.value = 0
+        }
+        // 停止消费者和关闭通道
+        consumerJob?.cancel()
+        taskChannel?.close()
+        taskChannel = null
+        // 清空当前任务
+        _currentTask.value = null
+        currentTaskCompletion?.cancel()
+        currentTaskCompletion = null
     }
 
     /**
@@ -347,6 +372,9 @@ class TaskQueue(
         // 删除 request.json 文件
         fileService.deleteRequestFile(task.triggerId)
 
+        // 获取用户信息以获取回调请求头
+        val user = userRepository.getUserById(task.userId)
+
         // 构建外部服务回调请求
         val settings = settingsRepository.getSettings()
         val callbackRequest = ExternalCallbackRequest(
@@ -364,11 +392,12 @@ class TaskQueue(
             shadowBotDuration = shadowbotDuration
         )
 
-        // 发送回调到外部服务
+        // 发送回调到外部服务（使用用户配置的请求头）
         val callbackResult = callbackClient.sendCallback(
             callbackUrl = task.callbackUrl,
             fileWebHookName = settings.fileWebHookName,
-            request = callbackRequest
+            request = callbackRequest,
+            customHeaders = user?.callbackHeaders ?: emptyMap()
         )
 
         // 根据回调结果更新最终状态

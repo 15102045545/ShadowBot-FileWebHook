@@ -174,9 +174,9 @@ fun UserListScreen(
         UserFormDialog(
             title = "新建用户",
             onDismiss = { showCreateDialog = false },
-            onConfirm = { name, remark, callbackUrl ->
+            onConfirm = { name, remark, callbackUrl, callbackHeaders ->
                 scope.launch {
-                    val result = viewModel.createUser(name, remark, callbackUrl)
+                    val result = viewModel.createUser(name, remark, callbackUrl, callbackHeaders)
                     snackbarMessage = if (result.isSuccess) "创建成功" else "创建失败"
                 }
                 showCreateDialog = false
@@ -191,10 +191,11 @@ fun UserListScreen(
             initialName = user.name,
             initialRemark = user.remark ?: "",
             initialCallbackUrl = user.callbackUrl,
+            initialCallbackHeaders = user.callbackHeaders,
             onDismiss = { editingUser = null },
-            onConfirm = { name, remark, callbackUrl ->
+            onConfirm = { name, remark, callbackUrl, callbackHeaders ->
                 scope.launch {
-                    val result = viewModel.updateUser(user.userId, name, remark, callbackUrl)
+                    val result = viewModel.updateUser(user.userId, name, remark, callbackUrl, callbackHeaders)
                     snackbarMessage = if (result.isSuccess) "更新成功" else "更新失败"
                 }
                 editingUser = null
@@ -275,6 +276,7 @@ fun UserListScreen(
  * @param initialName 初始名称
  * @param initialRemark 初始备注
  * @param initialCallbackUrl 初始回调地址
+ * @param initialCallbackHeaders 初始回调请求头
  * @param onDismiss 取消回调
  * @param onConfirm 确认回调
  */
@@ -284,19 +286,23 @@ private fun UserFormDialog(
     initialName: String = "",
     initialRemark: String = "",
     initialCallbackUrl: String = "",
+    initialCallbackHeaders: Map<String, String> = emptyMap(),
     onDismiss: () -> Unit,
-    onConfirm: (name: String, remark: String?, callbackUrl: String) -> Unit
+    onConfirm: (name: String, remark: String?, callbackUrl: String, callbackHeaders: Map<String, String>) -> Unit
 ) {
     // 表单状态
     var name by remember { mutableStateOf(initialName) }
     var remark by remember { mutableStateOf(initialRemark) }
     var callbackUrl by remember { mutableStateOf(initialCallbackUrl) }
+    var callbackHeaders by remember { mutableStateOf(initialCallbackHeaders.toMutableMap()) }
+    var newHeaderKey by remember { mutableStateOf("") }
+    var newHeaderValue by remember { mutableStateOf("") }
 
     FormDialog(
         title = title,
         onDismiss = onDismiss,
         onConfirm = {
-            onConfirm(name, remark.ifBlank { null }, callbackUrl)
+            onConfirm(name, remark.ifBlank { null }, callbackUrl, callbackHeaders)
         },
         confirmEnabled = name.isNotBlank() && callbackUrl.isNotBlank()  // 名称和回调地址为必填
     ) {
@@ -321,6 +327,85 @@ private fun UserFormDialog(
             label = "回调地址 *",
             supportingText = "例如: http://192.168.1.100:8080"
         )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // 回调请求头部分
+        Text(
+            text = "回调请求头（可选）",
+            style = MaterialTheme.typography.titleSmall
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 显示已有的请求头
+        if (callbackHeaders.isNotEmpty()) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                callbackHeaders.forEach { (key, value) ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$key: $value",
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(
+                            onClick = {
+                                callbackHeaders = callbackHeaders.toMutableMap().apply { remove(key) }
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "删除",
+                                modifier = Modifier.size(16.dp),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        // 添加新请求头的输入框
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            FormTextField(
+                value = newHeaderKey,
+                onValueChange = { newHeaderKey = it },
+                label = "Header Key",
+                modifier = Modifier.weight(1f)
+            )
+            FormTextField(
+                value = newHeaderValue,
+                onValueChange = { newHeaderValue = it },
+                label = "Header Value",
+                modifier = Modifier.weight(1f)
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = {
+                if (newHeaderKey.isNotBlank() && newHeaderValue.isNotBlank()) {
+                    callbackHeaders = callbackHeaders.toMutableMap().apply {
+                        put(newHeaderKey.trim(), newHeaderValue.trim())
+                    }
+                    newHeaderKey = ""
+                    newHeaderValue = ""
+                }
+            },
+            enabled = newHeaderKey.isNotBlank() && newHeaderValue.isNotBlank()
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
+            Spacer(modifier = Modifier.width(4.dp))
+            Text("添加请求头")
+        }
     }
 }
 

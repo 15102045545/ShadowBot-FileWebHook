@@ -2,7 +2,7 @@
  * 影刀回调路由
  *
  * 本文件定义影刀 RPA 调用的回调接口：
- * - POST /trigged：影刀开始执行回调
+ * - POST /triggered：影刀开始执行回调
  * - POST /notify：影刀执行完成回调
  */
 
@@ -27,7 +27,7 @@ import io.ktor.server.routing.*
 fun Route.callbackRoutes(taskQueue: TaskQueue) {
 
     /**
-     * POST /trigged
+     * POST /triggered
      *
      * 影刀开始执行回调接口
      *
@@ -40,7 +40,7 @@ fun Route.callbackRoutes(taskQueue: TaskQueue) {
      *
      * 响应：CallbackResponse.OK
      */
-    post("/trigged") {
+    post("/triggered") {
         // 解析请求体
         val request = try {
             call.receive<TriggeredCallbackRequest>()

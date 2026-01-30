@@ -18,7 +18,7 @@ import kotlinx.serialization.Serializable
  * @property userId 调用用户 ID
  * @property status 当前执行状态
  * @property requestTime 外部服务请求到达时间
- * @property shadowbotStartTime 影刀开始执行时间（收到 /trigged 回调时记录）
+ * @property shadowbotStartTime 影刀开始执行时间（收到 /triggered 回调时记录）
  * @property shadowbotEndTime 影刀执行完毕时间（收到 /notify 回调时记录）
  * @property totalDuration 总耗时（毫秒）：从请求到回调完成
  * @property shadowbotDuration 影刀执行耗时（毫秒）：从开始到完成
@@ -70,7 +70,7 @@ enum class ExecutionStatus(val displayName: String) {
     /** 已写入文件待影刀执行 - request.json 文件已写入 */
     FILE_WRITTEN("已写入文件待影刀执行"),
 
-    /** 影刀执行中 - 收到影刀的 /trigged 回调 */
+    /** 影刀执行中 - 收到影刀的 /triggered 回调 */
     EXECUTING("影刀执行中"),
 
     /** 影刀执行完成 - 收到影刀的 /notify 回调 */

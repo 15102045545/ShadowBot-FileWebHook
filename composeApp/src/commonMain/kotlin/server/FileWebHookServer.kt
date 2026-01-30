@@ -26,7 +26,7 @@ import server.routes.triggerRoutes
  *
  * 封装 Ktor CIO 嵌入式服务器，提供：
  * - /trigger/execute：外部服务触发执行接口
- * - /trigged：影刀开始执行回调接口
+ * - /triggered：影刀开始执行回调接口
  * - /notify：影刀执行完成回调接口
  *
  * @property userRepository 用户仓库，用于身份验证

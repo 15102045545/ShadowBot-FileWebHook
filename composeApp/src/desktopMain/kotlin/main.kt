@@ -8,6 +8,7 @@
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import di.appModules
@@ -30,9 +31,9 @@ fun main() = application {
     }
 
     // 配置窗口状态
-    // 默认大小：1200x800 像素
+    // 默认全屏显示
     val windowState = rememberWindowState(
-        size = DpSize(1200.dp, 800.dp)
+        placement = WindowPlacement.Maximized
     )
 
     // 创建应用窗口

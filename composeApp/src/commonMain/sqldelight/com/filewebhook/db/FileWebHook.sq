@@ -20,6 +20,7 @@ CREATE TABLE users (
     remark TEXT,                           -- 备注信息（可选）
     secretKey TEXT NOT NULL,               -- 密钥 (UUID)，用于 API 身份验证
     callbackUrl TEXT NOT NULL,             -- 回调地址（外部服务的 HTTP 地址）
+    callbackHeaders TEXT,                  -- 回调请求头（JSON 字符串格式，可选）
     createdAt TEXT NOT NULL,               -- 创建时间 (ISO 8601 格式)
     updatedAt TEXT NOT NULL                -- 更新时间 (ISO 8601 格式)
 );
@@ -65,7 +66,7 @@ CREATE TABLE execution_logs (
     userId TEXT NOT NULL,                  -- 调用用户 ID
     status TEXT NOT NULL,                  -- 执行状态（REQUESTED/QUEUED/EXECUTING/COMPLETED 等）
     requestTime TEXT NOT NULL,             -- 外部服务请求到达时间
-    shadowbotStartTime TEXT,               -- 影刀开始执行时间（收到 /trigged 回调）
+    shadowbotStartTime TEXT,               -- 影刀开始执行时间（收到 /triggered 回调）
     shadowbotEndTime TEXT,                 -- 影刀执行完毕时间（收到 /notify 回调）
     totalDuration INTEGER,                 -- 总耗时（毫秒）：从请求到回调完成
     shadowbotDuration INTEGER,             -- 影刀执行耗时（毫秒）
@@ -111,12 +112,12 @@ SELECT * FROM users WHERE userId = ? AND secretKey = ?;
 
 -- 插入新用户
 insertUser:
-INSERT INTO users (userId, name, remark, secretKey, callbackUrl, createdAt, updatedAt)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT INTO users (userId, name, remark, secretKey, callbackUrl, callbackHeaders, createdAt, updatedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 -- 更新用户基本信息（不含密钥）
 updateUser:
-UPDATE users SET name = ?, remark = ?, callbackUrl = ?, updatedAt = ? WHERE userId = ?;
+UPDATE users SET name = ?, remark = ?, callbackUrl = ?, callbackHeaders = ?, updatedAt = ? WHERE userId = ?;
 
 -- 重置用户密钥
 updateUserSecretKey:
@@ -196,9 +197,37 @@ SELECT * FROM execution_logs WHERE triggerId = ? ORDER BY createdAt DESC LIMIT ?
 selectExecutionLogsByStatus:
 SELECT * FROM execution_logs WHERE status = ? ORDER BY createdAt DESC LIMIT ?;
 
+-- 查询指定用户的执行记录
+selectExecutionLogsByUserId:
+SELECT * FROM execution_logs WHERE userId = ? ORDER BY createdAt DESC LIMIT ?;
+
 -- 根据 eventId 查询单条执行记录
 selectExecutionLogByEventId:
 SELECT * FROM execution_logs WHERE eventId = ?;
+
+-- 多条件组合查询执行记录（支持触发器、用户、状态、时间区间、事件ID筛选）
+selectExecutionLogsByFilters:
+SELECT * FROM execution_logs
+WHERE
+    (:triggerId IS NULL OR triggerId = :triggerId)
+    AND (:userId IS NULL OR userId = :userId)
+    AND (:status IS NULL OR status = :status)
+    AND (:eventId IS NULL OR eventId LIKE '%' || :eventId || '%')
+    AND (:startTime IS NULL OR requestTime >= :startTime)
+    AND (:endTime IS NULL OR requestTime <= :endTime)
+ORDER BY createdAt DESC
+LIMIT :limit OFFSET :offset;
+
+-- 统计符合条件的执行记录总数（用于分页）
+countExecutionLogsByFilters:
+SELECT COUNT(*) FROM execution_logs
+WHERE
+    (:triggerId IS NULL OR triggerId = :triggerId)
+    AND (:userId IS NULL OR userId = :userId)
+    AND (:status IS NULL OR status = :status)
+    AND (:eventId IS NULL OR eventId LIKE '%' || :eventId || '%')
+    AND (:startTime IS NULL OR requestTime >= :startTime)
+    AND (:endTime IS NULL OR requestTime <= :endTime);
 
 -- 插入新的执行记录（初始状态）
 insertExecutionLog:

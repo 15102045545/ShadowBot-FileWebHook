@@ -16,6 +16,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.util.UUID
 
 /**
@@ -29,6 +31,9 @@ class UserRepository(private val database: FileWebHookDatabase) {
 
     /** 获取查询接口 */
     private val queries get() = database.fileWebHookQueries
+
+    /** JSON 序列化器 */
+    private val json = Json { ignoreUnknownKeys = true }
 
     /**
      * 获取所有用户
@@ -76,6 +81,13 @@ class UserRepository(private val database: FileWebHookDatabase) {
         val secretKey = UUID.randomUUID().toString()
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).toString()
 
+        // 将 callbackHeaders Map 序列化为 JSON 字符串
+        val callbackHeadersJson = if (request.callbackHeaders.isNotEmpty()) {
+            json.encodeToString(request.callbackHeaders)
+        } else {
+            null
+        }
+
         // 插入数据库
         queries.insertUser(
             userId = userId,
@@ -83,6 +95,7 @@ class UserRepository(private val database: FileWebHookDatabase) {
             remark = request.remark,
             secretKey = secretKey,
             callbackUrl = request.callbackUrl,
+            callbackHeaders = callbackHeadersJson,
             createdAt = now,
             updatedAt = now
         )
@@ -94,6 +107,7 @@ class UserRepository(private val database: FileWebHookDatabase) {
             remark = request.remark,
             secretKey = secretKey,
             callbackUrl = request.callbackUrl,
+            callbackHeaders = request.callbackHeaders,
             createdAt = now,
             updatedAt = now
         )
@@ -110,10 +124,19 @@ class UserRepository(private val database: FileWebHookDatabase) {
      */
     suspend fun updateUser(userId: String, request: UpdateUserRequest): Boolean = withContext(Dispatchers.IO) {
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).toString()
+
+        // 将 callbackHeaders Map 序列化为 JSON 字符串
+        val callbackHeadersJson = if (request.callbackHeaders.isNotEmpty()) {
+            json.encodeToString(request.callbackHeaders)
+        } else {
+            null
+        }
+
         queries.updateUser(
             name = request.name,
             remark = request.remark,
             callbackUrl = request.callbackUrl,
+            callbackHeaders = callbackHeadersJson,
             updatedAt = now,
             userId = userId
         )
@@ -158,13 +181,25 @@ class UserRepository(private val database: FileWebHookDatabase) {
     /**
      * 将数据库实体转换为领域模型
      */
-    private fun com.filewebhook.db.Users.toUser() = User(
-        userId = userId,
-        name = name,
-        remark = remark,
-        secretKey = secretKey,
-        callbackUrl = callbackUrl,
-        createdAt = createdAt,
-        updatedAt = updatedAt
-    )
+    private fun com.filewebhook.db.Users.toUser(): User {
+        // 从 JSON 字符串反序列化 callbackHeaders
+        val headers = try {
+            callbackHeaders?.let {
+                json.decodeFromString<Map<String, String>>(it)
+            } ?: emptyMap()
+        } catch (e: Exception) {
+            emptyMap()
+        }
+
+        return User(
+            userId = userId,
+            name = name,
+            remark = remark,
+            secretKey = secretKey,
+            callbackUrl = callbackUrl,
+            callbackHeaders = headers,
+            createdAt = createdAt,
+            updatedAt = updatedAt
+        )
+    }
 }

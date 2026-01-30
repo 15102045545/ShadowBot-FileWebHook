@@ -54,7 +54,7 @@ External Service → HTTP POST → FileWebHook → Write request.json → Shadow
 2. FileWebHook validates credentials and permissions
 3. Request enters global FIFO queue (serial execution - one task at a time)
 4. Queue consumer writes `triggerFiles/{triggerId}/request.json`
-5. ShadowBot file trigger detects file, calls `/trigged` callback
+5. ShadowBot file trigger detects file, calls `/triggered` callback
 6. ShadowBot executes business logic, calls `/notify` with results
 7. FileWebHook deletes request file, POSTs callback to external service
 
@@ -89,7 +89,7 @@ composeApp/src/
 - `POST /trigger/execute` - Trigger an RPA application
 
 **For ShadowBot Callbacks:**
-- `POST /trigged` - Notification that execution started
+- `POST /triggered` - Notification that execution started
 - `POST /notify` - Notification with execution results
 
 ## Data Model

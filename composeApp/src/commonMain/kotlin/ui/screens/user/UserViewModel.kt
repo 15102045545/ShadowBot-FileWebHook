@@ -70,12 +70,18 @@ class UserViewModel(
      * @param name 用户名称
      * @param remark 备注（可选）
      * @param callbackUrl 回调地址
+     * @param callbackHeaders 回调请求头
      * @return Result<User> 创建结果
      */
-    suspend fun createUser(name: String, remark: String?, callbackUrl: String): Result<User> {
+    suspend fun createUser(
+        name: String,
+        remark: String?,
+        callbackUrl: String,
+        callbackHeaders: Map<String, String>
+    ): Result<User> {
         return try {
             val user = userRepository.createUser(
-                CreateUserRequest(name, remark, callbackUrl)
+                CreateUserRequest(name, remark, callbackUrl, callbackHeaders)
             )
             loadUsers()
             Result.success(user)
@@ -91,11 +97,18 @@ class UserViewModel(
      * @param name 新名称
      * @param remark 新备注
      * @param callbackUrl 新回调地址
+     * @param callbackHeaders 回调请求头
      * @return Result<Unit> 更新结果
      */
-    suspend fun updateUser(userId: String, name: String, remark: String?, callbackUrl: String): Result<Unit> {
+    suspend fun updateUser(
+        userId: String,
+        name: String,
+        remark: String?,
+        callbackUrl: String,
+        callbackHeaders: Map<String, String>
+    ): Result<Unit> {
         return try {
-            userRepository.updateUser(userId, UpdateUserRequest(name, remark, callbackUrl))
+            userRepository.updateUser(userId, UpdateUserRequest(name, remark, callbackUrl, callbackHeaders))
             loadUsers()
             Result.success(Unit)
         } catch (e: Exception) {

@@ -23,6 +23,6 @@ enum class Screen(val title: String) {
     /** 用户管理页面 */
     USERS("用户管理"),
 
-    /** 系统设置页面 */
-    SETTINGS("系统设置")
+    /** 软件配置页面 */
+    SETTINGS("软件配置")
 }

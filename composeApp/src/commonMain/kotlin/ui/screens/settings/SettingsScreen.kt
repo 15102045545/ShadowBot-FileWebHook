@@ -13,6 +13,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -79,7 +80,7 @@ fun SettingsScreen(
     ) {
         // 页面标题
         Text(
-            text = "系统设置",
+            text = "软件配置",
             style = MaterialTheme.typography.headlineMedium
         )
 
@@ -119,30 +120,49 @@ fun SettingsScreen(
                         }
                     }
 
-                    // 启动/停止按钮
-                    if (serverRunning) {
-                        Button(
-                            onClick = { viewModel.stopServer() },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error
-                            )
-                        ) {
-                            Icon(Icons.Default.Close, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("停止服务")
-                        }
-                    } else {
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    viewModel.startServer()
-                                    snackbarMessage = "服务已启动"
-                                }
+                    // 启动/停止/重启按钮
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (serverRunning) {
+                            // 重启按钮
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        viewModel.restartServer()
+                                        snackbarMessage = "服务已重启"
+                                    }
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.tertiary
+                                )
+                            ) {
+                                Icon(Icons.Default.Refresh, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("重启服务")
                             }
-                        ) {
-                            Icon(Icons.Default.PlayArrow, contentDescription = null)
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("启动服务")
+                            // 停止按钮
+                            Button(
+                                onClick = { viewModel.stopServer() },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Icon(Icons.Default.Close, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("停止服务")
+                            }
+                        } else {
+                            Button(
+                                onClick = {
+                                    scope.launch {
+                                        viewModel.startServer()
+                                        snackbarMessage = "服务已启动"
+                                    }
+                                }
+                            ) {
+                                Icon(Icons.Default.PlayArrow, contentDescription = null)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("启动服务")
+                            }
                         }
                     }
                 }

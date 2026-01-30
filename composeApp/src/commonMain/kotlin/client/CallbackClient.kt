@@ -48,12 +48,14 @@ class CallbackClient {
      * @param callbackUrl 外部服务回调基础 URL（用户配置）
      * @param fileWebHookName 本机 FileWebHook 名称标识
      * @param request 回调请求体，包含执行结果详情
+     * @param customHeaders 自定义请求头（用户配置的回调请求头）
      * @return Result<Unit> 成功返回 Unit，失败返回异常
      */
     suspend fun sendCallback(
         callbackUrl: String,
         fileWebHookName: String,
-        request: ExternalCallbackRequest
+        request: ExternalCallbackRequest,
+        customHeaders: Map<String, String> = emptyMap()
     ): Result<Unit> {
         return try {
             // 构建完整的回调 URL
@@ -63,6 +65,10 @@ class CallbackClient {
             val response = client.post(fullUrl) {
                 contentType(ContentType.Application.Json)
                 setBody(request)
+                // 添加用户自定义的请求头
+                customHeaders.forEach { (key, value) ->
+                    header(key, value)
+                }
             }
 
             // 检查响应状态码

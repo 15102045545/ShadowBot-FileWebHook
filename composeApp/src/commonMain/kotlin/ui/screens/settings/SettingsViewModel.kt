@@ -100,6 +100,34 @@ class SettingsViewModel(
     }
 
     /**
+     * 重启服务器
+     *
+     * 停止服务器并清空队列，然后重新启动
+     * 用于让配置更改（端口、队列长度等）生效
+     */
+    suspend fun restartServer() {
+        // 停止服务器
+        server.stop()
+        // 清空队列并停止
+        taskQueue.clearAndStop()
+        _serverRunning.value = false
+        // 重新启动服务器
+        startServer()
+    }
+
+    /**
+     * 应用启动时自动启动服务器
+     *
+     * 加载设置后自动启动 HTTP 服务器和任务队列
+     */
+    suspend fun autoStartServerOnLaunch() {
+        loadSettings()
+        if (!_serverRunning.value) {
+            startServer()
+        }
+    }
+
+    /**
      * 收集队列大小
      *
      * 用于从 TaskQueue 的 StateFlow 收集实时队列大小

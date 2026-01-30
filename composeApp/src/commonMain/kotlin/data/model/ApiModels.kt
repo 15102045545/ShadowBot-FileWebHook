@@ -120,7 +120,7 @@ data class TriggerExecuteResponse(
 /**
  * 影刀开始执行回调请求
  *
- * 影刀调用 POST /trigged 时的请求体
+ * 影刀调用 POST /triggered 时的请求体
  * 表示影刀已检测到文件触发器并开始执行
  *
  * @property triggerId 触发器 ID
@@ -156,7 +156,7 @@ data class NotifyCallbackRequest(
 /**
  * 通用回调响应
  *
- * /trigged 和 /notify 的响应体
+ * /triggered 和 /notify 的响应体
  *
  * @property code 响应码
  * @property message 响应消息
@@ -167,7 +167,7 @@ data class CallbackResponse(
     val message: String
 ) {
     companion object {
-        /** /trigged 成功响应 */
+        /** /triggered 成功响应 */
         val OK = CallbackResponse(200, "已知晓")
 
         /** /notify 成功响应 */

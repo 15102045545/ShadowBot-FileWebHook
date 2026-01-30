@@ -18,6 +18,7 @@ import kotlinx.serialization.Serializable
  * @property remark 备注信息（可选）
  * @property secretKey 密钥（UUID 格式），用于 API 身份验证
  * @property callbackUrl 回调地址，影刀执行完成后通知此地址
+ * @property callbackHeaders 回调请求头，调用外部服务时附加的 HTTP 请求头（可选）
  * @property createdAt 创建时间（ISO 8601 格式）
  * @property updatedAt 更新时间（ISO 8601 格式）
  */
@@ -28,6 +29,7 @@ data class User(
     val remark: String? = null,
     val secretKey: String,
     val callbackUrl: String,
+    val callbackHeaders: Map<String, String> = emptyMap(),
     val createdAt: String,
     val updatedAt: String
 )
@@ -40,12 +42,14 @@ data class User(
  * @property name 用户名称（必填）
  * @property remark 备注信息（可选）
  * @property callbackUrl 回调地址（必填）
+ * @property callbackHeaders 回调请求头（可选）
  */
 @Serializable
 data class CreateUserRequest(
     val name: String,
     val remark: String? = null,
-    val callbackUrl: String
+    val callbackUrl: String,
+    val callbackHeaders: Map<String, String> = emptyMap()
 )
 
 /**
@@ -56,10 +60,12 @@ data class CreateUserRequest(
  * @property name 用户名称
  * @property remark 备注信息
  * @property callbackUrl 回调地址
+ * @property callbackHeaders 回调请求头
  */
 @Serializable
 data class UpdateUserRequest(
     val name: String,
     val remark: String? = null,
-    val callbackUrl: String
+    val callbackUrl: String,
+    val callbackHeaders: Map<String, String> = emptyMap()
 )
