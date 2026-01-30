@@ -1,0 +1,5 @@
+ 现在我要求你当一次评审官和分析者   读取这个目录下所有文件 C:\project\ShadowBot-FileWebHook\shadowbot\comparison,        你会看到v1 v2  v3, 这三个目录 , 这三个目录每个里面都有1个prompt提示词文本 和 2个AI最终生成的脚本文件,
+  目前只有v3满足了我的需求  可以强制拷贝到影刀的指令,实现跨平台粘贴,  但是我想知道为什么?
+  为什么v3的脚本可以满足需求  它和v2 v1有什么不同,它们分别使用了什么技术,
+  以及它们的prompt给Ai带来了哪些影响导致它们的输出不能满足需求,那为什么v3又可以满足需求  请你进行评审和分析
+  然后生成一份md报告  放在C:\project\ShadowBot-FileWebHook\shadowbot\comparison下

@@ -6,7 +6,7 @@
 
 ### 报告 Bug
 
-如果您发现了 Bug，请通过 [GitHub Issues](https://github.com/your-username/ShadowBot-FileWebHook/issues) 提交，并包含以下信息：
+如果您发现了 Bug，请通过 [GitHub Issues](https://github.com/15102045545/ShadowBot-FileWebHook/issues) 提交，并包含以下信息：
 
 - **问题描述**：清晰描述遇到的问题
 - **复现步骤**：详细的步骤说明
@@ -35,7 +35,7 @@
 #### 2. 克隆到本地
 
 ```bash
-git clone https://github.com/your-username/ShadowBot-FileWebHook.git
+git clone https://github.com/15102045545/ShadowBot-FileWebHook.git
 cd ShadowBot-FileWebHook
 ```
 
@@ -179,7 +179,7 @@ class UserRepository(private val database: FileWebHookDatabase) {
 
 如有任何问题，可以：
 - 查看 [README](README.md) 和文档
-- 搜索现有 [Issues](https://github.com/your-username/ShadowBot-FileWebHook/issues)
+- 搜索现有 [Issues](https://github.com/15102045545/ShadowBot-FileWebHook/issues)
 - 创建新的 Issue 提问
 
 ## 致谢

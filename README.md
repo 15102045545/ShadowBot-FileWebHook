@@ -57,7 +57,7 @@ FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解�
 
 ### 下载安装
 
-从 [Releases](https://github.com/your-username/ShadowBot-FileWebHook/releases) 页面下载对应平台的安装包：
+从 [Releases](https://github.com/15102045545/ShadowBot-FileWebHook/releases) 页面下载对应平台的安装包：
 
 | 平台 | 文件 |
 |------|------|
@@ -69,7 +69,7 @@ FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解�
 
 ```bash
 # 克隆仓库
-git clone https://github.com/your-username/ShadowBot-FileWebHook.git
+git clone https://github.com/15102045545/ShadowBot-FileWebHook.git
 cd ShadowBot-FileWebHook
 
 # 运行应用
