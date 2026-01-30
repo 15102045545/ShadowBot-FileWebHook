@@ -195,7 +195,7 @@ class TaskQueue(
             }
             // 更新状态为已入队
             executionLogRepository.updateStatus(eventId, ExecutionStatus.QUEUED)
-            EnqueueResult(true, pendingTasks.size - 1)
+            EnqueueResult(true, pendingTasks.size)
         } else {
             // 队列已满
             EnqueueResult(false, -1)
