@@ -45,3 +45,19 @@ data class CreateTriggerRequest(
     val description: String? = null,
     val remark: String? = null
 )
+
+/**
+ * 更新触发器请求
+ *
+ * 用于修改触发器时的表单数据
+ *
+ * @property name 触发器名称（必填）
+ * @property description 触发器描述（可选）
+ * @property remark 备注信息（可选）
+ */
+@Serializable
+data class UpdateTriggerRequest(
+    val name: String,
+    val description: String? = null,
+    val remark: String? = null
+)

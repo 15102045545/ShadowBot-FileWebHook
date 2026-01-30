@@ -17,6 +17,9 @@ enum class Screen(val title: String) {
     /** 触发器管理页面 */
     TRIGGERS("触发器管理"),
 
+    /** 触发器记录管理页面 */
+    EXECUTION_LOGS("触发器记录管理"),
+
     /** 用户管理页面 */
     USERS("用户管理"),
 

@@ -14,6 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import data.repository.ExecutionLogRepository
 import data.repository.PermissionRepository
 import data.repository.SettingsRepository
 import data.repository.TriggerRepository
@@ -23,6 +24,8 @@ import org.koin.compose.koinInject
 import server.FileWebHookServer
 import ui.components.Sidebar
 import ui.navigation.Screen
+import ui.screens.executionlog.ExecutionLogListScreen
+import ui.screens.executionlog.ExecutionLogViewModel
 import ui.screens.settings.SettingsScreen
 import ui.screens.settings.SettingsViewModel
 import ui.screens.trigger.TriggerListScreen
@@ -46,12 +49,15 @@ fun App() {
     FileWebHookTheme {
         // 当前选中的页面
         var currentScreen by remember { mutableStateOf(Screen.TRIGGERS) }
+        // 触发器记录页面的筛选参数（从触发器页面跳转时使用）
+        var executionLogFilterTriggerId by remember { mutableStateOf<Long?>(null) }
 
         // 从 Koin 注入依赖
         val userRepository = koinInject<UserRepository>()
         val triggerRepository = koinInject<TriggerRepository>()
         val permissionRepository = koinInject<PermissionRepository>()
         val settingsRepository = koinInject<SettingsRepository>()
+        val executionLogRepository = koinInject<ExecutionLogRepository>()
         val server = koinInject<FileWebHookServer>()
         val taskQueue = koinInject<TaskQueue>()
 
@@ -59,6 +65,7 @@ fun App() {
         val triggerViewModel = remember { TriggerViewModel(triggerRepository) }
         val userViewModel = remember { UserViewModel(userRepository, triggerRepository, permissionRepository) }
         val settingsViewModel = remember { SettingsViewModel(settingsRepository, server, taskQueue) }
+        val executionLogViewModel = remember { ExecutionLogViewModel(executionLogRepository, triggerRepository) }
 
         // 主布局：左右分栏
         Row(
@@ -69,7 +76,13 @@ fun App() {
             // 左侧：导航侧边栏
             Sidebar(
                 currentScreen = currentScreen,
-                onScreenSelected = { currentScreen = it }
+                onScreenSelected = { screen ->
+                    // 如果切换到执行记录页面但不是从触发器页面跳转，清空筛选
+                    if (screen == Screen.EXECUTION_LOGS && currentScreen != Screen.TRIGGERS) {
+                        executionLogFilterTriggerId = null
+                    }
+                    currentScreen = screen
+                }
             )
 
             // 分割线
@@ -82,7 +95,17 @@ fun App() {
             Box(modifier = Modifier.weight(1f)) {
                 // 根据当前页面显示对应内容
                 when (currentScreen) {
-                    Screen.TRIGGERS -> TriggerListScreen(viewModel = triggerViewModel)
+                    Screen.TRIGGERS -> TriggerListScreen(
+                        viewModel = triggerViewModel,
+                        onViewExecutionLogs = { triggerId ->
+                            executionLogFilterTriggerId = triggerId
+                            currentScreen = Screen.EXECUTION_LOGS
+                        }
+                    )
+                    Screen.EXECUTION_LOGS -> ExecutionLogListScreen(
+                        viewModel = executionLogViewModel,
+                        initialTriggerId = executionLogFilterTriggerId
+                    )
                     Screen.USERS -> UserListScreen(viewModel = userViewModel)
                     Screen.SETTINGS -> SettingsScreen(viewModel = settingsViewModel)
                 }

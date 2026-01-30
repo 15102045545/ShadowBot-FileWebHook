@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.History
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +65,16 @@ fun Sidebar(
             label = Screen.TRIGGERS.title,
             selected = currentScreen == Screen.TRIGGERS,
             onClick = { onScreenSelected(Screen.TRIGGERS) }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 导航菜单项：触发器记录管理
+        SidebarItem(
+            icon = Icons.Default.History,
+            label = Screen.EXECUTION_LOGS.title,
+            selected = currentScreen == Screen.EXECUTION_LOGS,
+            onClick = { onScreenSelected(Screen.EXECUTION_LOGS) }
         )
 
         Spacer(modifier = Modifier.height(8.dp))

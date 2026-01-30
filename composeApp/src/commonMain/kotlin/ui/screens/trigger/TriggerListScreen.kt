@@ -11,6 +11,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.FileCopy
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,13 +32,18 @@ import ui.components.*
  * - 查看触发器信息（ID、名称、描述、文件夹路径、创建时间）
  * - 复制文件夹路径到剪贴板
  * - 新建触发器
+ * - 编辑触发器
+ * - 删除触发器
+ * - 查看触发器执行记录
  *
  * @param viewModel 触发器 ViewModel
+ * @param onViewExecutionLogs 查看执行记录回调
  * @param modifier 修饰符
  */
 @Composable
 fun TriggerListScreen(
     viewModel: TriggerViewModel,
+    onViewExecutionLogs: (triggerId: Long) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // 从 ViewModel 获取状态
@@ -46,6 +54,8 @@ fun TriggerListScreen(
 
     // 本地 UI 状态
     var showCreateDialog by remember { mutableStateOf(false) }
+    var showEditDialog by remember { mutableStateOf<Trigger?>(null) }
+    var showDeleteDialog by remember { mutableStateOf<Trigger?>(null) }
     var snackbarMessage by remember { mutableStateOf<String?>(null) }
 
     // 页面加载时获取数据
@@ -132,6 +142,42 @@ fun TriggerListScreen(
                     // 创建时间列
                     TableColumn(header = "创建时间", weight = 1.2f) { trigger ->
                         TableCellText(trigger.createdAt.take(19).replace("T", " "))
+                    },
+                    // 操作列
+                    TableColumn(header = "操作", weight = 1.2f) { trigger ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            // 查看记录按钮
+                            IconButton(
+                                onClick = { onViewExecutionLogs(trigger.id) }
+                            ) {
+                                Icon(
+                                    Icons.Default.Visibility,
+                                    contentDescription = "查看记录",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                            // 编辑按钮
+                            IconButton(
+                                onClick = { showEditDialog = trigger }
+                            ) {
+                                Icon(
+                                    Icons.Default.Edit,
+                                    contentDescription = "编辑",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                            // 删除按钮
+                            IconButton(
+                                onClick = { showDeleteDialog = trigger }
+                            ) {
+                                Icon(
+                                    Icons.Default.Delete,
+                                    contentDescription = "删除",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
                     }
                 )
             )
@@ -152,6 +198,44 @@ fun TriggerListScreen(
                     }
                 }
                 showCreateDialog = false
+            }
+        )
+    }
+
+    // 编辑触发器对话框
+    showEditDialog?.let { trigger ->
+        EditTriggerDialog(
+            trigger = trigger,
+            onDismiss = { showEditDialog = null },
+            onConfirm = { name, description, remark ->
+                scope.launch {
+                    val result = viewModel.updateTrigger(trigger.id, name, description, remark)
+                    if (result.isSuccess) {
+                        snackbarMessage = "更新成功"
+                    } else {
+                        snackbarMessage = "更新失败: ${result.exceptionOrNull()?.message}"
+                    }
+                }
+                showEditDialog = null
+            }
+        )
+    }
+
+    // 删除确认对话框
+    showDeleteDialog?.let { trigger ->
+        ConfirmDeleteDialog(
+            triggerName = trigger.name,
+            onDismiss = { showDeleteDialog = null },
+            onConfirm = {
+                scope.launch {
+                    val result = viewModel.deleteTrigger(trigger.id)
+                    if (result.isSuccess) {
+                        snackbarMessage = "删除成功"
+                    } else {
+                        snackbarMessage = "删除失败: ${result.exceptionOrNull()?.message}"
+                    }
+                }
+                showDeleteDialog = null
             }
         )
     }
@@ -216,4 +300,96 @@ private fun CreateTriggerDialog(
             label = "备注"
         )
     }
+}
+
+/**
+ * 编辑触发器对话框
+ *
+ * 包含名称、描述、备注三个输入字段，初始值为当前触发器的值
+ *
+ * @param trigger 要编辑的触发器
+ * @param onDismiss 取消回调
+ * @param onConfirm 确认回调，传递表单数据
+ */
+@Composable
+private fun EditTriggerDialog(
+    trigger: Trigger,
+    onDismiss: () -> Unit,
+    onConfirm: (name: String, description: String?, remark: String?) -> Unit
+) {
+    // 表单状态，初始化为当前触发器的值
+    var name by remember { mutableStateOf(trigger.name) }
+    var description by remember { mutableStateOf(trigger.description ?: "") }
+    var remark by remember { mutableStateOf(trigger.remark ?: "") }
+
+    FormDialog(
+        title = "编辑触发器",
+        onDismiss = onDismiss,
+        onConfirm = {
+            onConfirm(
+                name,
+                description.ifBlank { null },
+                remark.ifBlank { null }
+            )
+        },
+        confirmEnabled = name.isNotBlank()  // 名称为必填项
+    ) {
+        // 名称输入框（必填）
+        FormTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = "名称 *"
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        // 描述输入框（可选）
+        FormTextField(
+            value = description,
+            onValueChange = { description = it },
+            label = "描述"
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        // 备注输入框（可选）
+        FormTextField(
+            value = remark,
+            onValueChange = { remark = it },
+            label = "备注"
+        )
+    }
+}
+
+/**
+ * 删除确认对话框
+ *
+ * @param triggerName 触发器名称
+ * @param onDismiss 取消回调
+ * @param onConfirm 确认回调
+ */
+@Composable
+private fun ConfirmDeleteDialog(
+    triggerName: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("确认删除") },
+        text = {
+            Text("确定要删除触发器 \"$triggerName\" 吗？\n\n注意：删除后不会影响已产生的执行记录，但触发器文件夹需要手动清理。")
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error
+                )
+            ) {
+                Text("删除")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("取消")
+            }
+        }
+    )
 }

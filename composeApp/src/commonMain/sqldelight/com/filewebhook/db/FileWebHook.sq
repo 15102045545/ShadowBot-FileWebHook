@@ -147,6 +147,14 @@ insertTrigger:
 INSERT INTO triggers (name, description, remark, folderPath, createdAt)
 VALUES (?, ?, ?, ?, ?);
 
+-- 更新触发器信息
+updateTrigger:
+UPDATE triggers SET name = ?, description = ?, remark = ? WHERE id = ?;
+
+-- 删除触发器
+deleteTrigger:
+DELETE FROM triggers WHERE id = ?;
+
 -- --------------------------------------------
 -- 权限相关查询
 -- --------------------------------------------

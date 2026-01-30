@@ -9,6 +9,7 @@ package ui.screens.trigger
 
 import androidx.compose.runtime.*
 import data.model.CreateTriggerRequest
+import data.model.UpdateTriggerRequest
 import data.model.Trigger
 import data.repository.TriggerRepository
 import kotlinx.coroutines.launch
@@ -68,6 +69,51 @@ class TriggerViewModel(private val triggerRepository: TriggerRepository) {
             // 刷新列表
             loadTriggers()
             Result.success(trigger)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * 更新触发器
+     *
+     * 更新触发器后自动刷新列表
+     *
+     * @param triggerId 触发器 ID
+     * @param name 触发器名称
+     * @param description 描述（可选）
+     * @param remark 备注（可选）
+     * @return Result<Unit> 更新结果
+     */
+    suspend fun updateTrigger(triggerId: Long, name: String, description: String?, remark: String?): Result<Unit> {
+        return try {
+            val result = triggerRepository.updateTrigger(
+                triggerId,
+                UpdateTriggerRequest(name, description, remark)
+            )
+            // 刷新列表
+            loadTriggers()
+            result
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * 删除触发器
+     *
+     * 删除触发器后自动刷新列表
+     * 注意：不会删除已产生的执行记录
+     *
+     * @param triggerId 触发器 ID
+     * @return Result<Unit> 删除结果
+     */
+    suspend fun deleteTrigger(triggerId: Long): Result<Unit> {
+        return try {
+            val result = triggerRepository.deleteTrigger(triggerId)
+            // 刷新列表
+            loadTriggers()
+            result
         } catch (e: Exception) {
             Result.failure(e)
         }

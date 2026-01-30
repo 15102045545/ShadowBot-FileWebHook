@@ -10,6 +10,7 @@ package data.repository
 import com.filewebhook.db.FileWebHookDatabase
 import data.model.Trigger
 import data.model.CreateTriggerRequest
+import data.model.UpdateTriggerRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
@@ -101,6 +102,47 @@ class TriggerRepository(
             folderPath = folderPath,
             createdAt = now
         )
+    }
+
+    /**
+     * 更新触发器信息
+     *
+     * 仅更新名称、描述和备注，不更新文件夹路径
+     *
+     * @param triggerId 触发器 ID
+     * @param request 更新触发器请求
+     * @return Result<Unit> 更新结果
+     */
+    suspend fun updateTrigger(triggerId: Long, request: UpdateTriggerRequest): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            queries.updateTrigger(
+                name = request.name,
+                description = request.description,
+                remark = request.remark,
+                id = triggerId
+            )
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * 删除触发器
+     *
+     * 删除触发器记录，但不删除已产生的执行记录
+     * 注意：文件夹不会被删除，需手动清理
+     *
+     * @param triggerId 触发器 ID
+     * @return Result<Unit> 删除结果
+     */
+    suspend fun deleteTrigger(triggerId: Long): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            queries.deleteTrigger(triggerId)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     /**

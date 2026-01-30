@@ -20,6 +20,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 # Run the desktop application
 ./gradlew :composeApp:run
+# On Windows: gradlew.bat :composeApp:run
 
 # Build the project
 ./gradlew :composeApp:build
@@ -31,6 +32,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Clean build
 ./gradlew clean build
+
+# Generate SQLDelight code (auto-generated during build)
+# Output: composeApp/build/generated/sqldelight/code/
 ```
 
 ## Project Overview
@@ -112,6 +116,8 @@ REQUESTED → QUEUED → PRE_RESPONDED → FILE_WRITTEN → EXECUTING → COMPLE
 | fileWebHookName | Instance identifier for callbacks | - |
 | fileWebHookSecretKey | Authentication key for external service callbacks | - |
 
+Settings are stored in SQLite database (`settings` table) and managed through UI.
+
 ## Security Requirements
 
 - Request body max 1MB
@@ -138,7 +144,35 @@ REQUESTED → QUEUED → PRE_RESPONDED → FILE_WRITTEN → EXECUTING → COMPLE
 
 ## Build Target
 
-Cross-platform desktop application:
+**Currently configured for Windows only:**
 - Windows: `.msi` / `.exe`
-- macOS: `.dmg`
-- Linux: `.deb`
+- macOS and Linux: build targets exist in gradle but are not configured
+
+## Runtime Behavior
+
+- HTTP server and task queue **must be manually started** via Settings screen (not auto-started)
+- SQLDelight generates code in `composeApp/build/generated/sqldelight/code/`
+- ShadowBot callback timeout: 30 minutes
+- Task queue is FIFO (serial execution - only one task runs at a time)
+- Queue uses Kotlin Channel with bounded capacity
+- Each task lifecycle: REQUESTED → QUEUED → PRE_RESPONDED → FILE_WRITTEN → EXECUTING → COMPLETED → CALLBACK_SUCCESS/CALLBACK_FAILED
+
+## Integration Details
+
+**Event ID Format:** `{triggerId}-{timestamp_ms}` - critical for callback matching throughout the system
+
+**External Service Callback URL Pattern:**
+```
+{callbackUrl}/{fileWebHookName}/filewebhook/notify
+```
+
+**Dependency Injection:** Uses Koin with three modules:
+- `dataModule` - Database driver, repositories
+- `domainModule` - CallbackClient, FileService, TaskQueue
+- `serverModule` - FileWebHookServer
+
+**Core Components:**
+- `TaskQueue` (domain/queue/TaskQueue.kt) - Serial FIFO queue using Kotlin Channel, manages task lifecycle
+- `FileWebHookServer` (server/FileWebHookServer.kt) - Ktor CIO embedded server with routes for external services and ShadowBot callbacks
+- `FileService` (domain/service/FileService.kt) - Manages writing/deleting request.json files in trigger folders
+- `CallbackClient` (client/CallbackClient.kt) - Ktor HTTP client for posting results to external services
