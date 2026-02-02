@@ -20,6 +20,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -100,12 +102,33 @@ fun Sidebar(
 
         Spacer(modifier = Modifier.height(8.dp))
 
+        // 导航菜单项：用户权限管理
+        SidebarItem(
+            icon = Icons.Default.Security,
+            label = Screen.USER_PERMISSIONS.title,
+            selected = currentScreen == Screen.USER_PERMISSIONS,
+            onClick = { onScreenSelected(Screen.USER_PERMISSIONS) }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         // 导航菜单项：系统设置
         SidebarItem(
             icon = Icons.Default.Settings,
             label = Screen.SETTINGS.title,
             selected = currentScreen == Screen.SETTINGS,
             onClick = { onScreenSelected(Screen.SETTINGS) }
+        )
+
+        // 弹性空间，将开发者功能推到底部
+        Spacer(modifier = Modifier.weight(1f))
+
+        // 导航菜单项：开发者功能（位于左下角）
+        SidebarItem(
+            icon = Icons.Default.Build,
+            label = Screen.DEVELOPER.title,
+            selected = currentScreen == Screen.DEVELOPER,
+            onClick = { onScreenSelected(Screen.DEVELOPER) }
         )
     }
 }

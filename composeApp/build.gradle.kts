@@ -86,6 +86,8 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing) // Swing UI 线程调度器
             implementation(libs.sqldelight.sqlite.driver) // SQLite JDBC 驱动
             implementation(libs.logback.classic)          // Logback 日志实现
+            implementation(libs.jna)                      // JNA 核心库（Windows API 调用）
+            implementation(libs.jna.platform)             // JNA 平台库
         }
     }
 }

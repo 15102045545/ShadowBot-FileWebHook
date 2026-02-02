@@ -28,6 +28,8 @@ kotlinx-datetime = "0.6.1"
 slf4j = "2.0.16"
 # Logback 日志实现版本
 logback = "1.5.12"
+# JNA (Java Native Access) 版本
+jna = "5.14.0"
 
 # --------------------------------------------
 # [libraries] 依赖库定义
@@ -87,6 +89,12 @@ koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 # Logback 日志实现
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+
+# -------- JNA (Java Native Access) --------
+# JNA 核心库（用于调用 Windows 原生 API）
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+# JNA 平台库（包含预定义的系统接口）
+jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 
 # --------------------------------------------
 # [plugins] Gradle 插件定义

@@ -8,6 +8,7 @@
 package data.repository
 
 import com.filewebhook.db.FileWebHookDatabase
+import data.model.UserPermission
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.Clock
@@ -92,6 +93,39 @@ class PermissionRepository(private val database: FileWebHookDatabase) {
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).toString()
         triggerIds.forEach { triggerId ->
             queries.insertPermission(userId, triggerId, now)
+        }
+    }
+
+    /**
+     * 获取所有权限记录
+     *
+     * @return 所有权限记录列表（按创建时间倒序）
+     */
+    suspend fun getAllPermissions(): List<UserPermission> = withContext(Dispatchers.IO) {
+        queries.selectAllPermissions().executeAsList().map { row ->
+            UserPermission(
+                id = row.id,
+                userId = row.userId,
+                triggerId = row.triggerId,
+                createdAt = row.createdAt
+            )
+        }
+    }
+
+    /**
+     * 获取指定用户的所有权限记录
+     *
+     * @param userId 用户 ID
+     * @return 该用户的所有权限记录列表（按创建时间倒序）
+     */
+    suspend fun getAllPermissionsByUserId(userId: String): List<UserPermission> = withContext(Dispatchers.IO) {
+        queries.selectAllPermissionsByUserId(userId).executeAsList().map { row ->
+            UserPermission(
+                id = row.id,
+                userId = row.userId,
+                triggerId = row.triggerId,
+                createdAt = row.createdAt
+            )
         }
     }
 }

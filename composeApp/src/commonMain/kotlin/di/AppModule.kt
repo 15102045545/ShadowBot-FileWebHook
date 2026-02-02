@@ -11,6 +11,7 @@ import client.CallbackClient
 import com.filewebhook.db.FileWebHookDatabase
 import data.DatabaseDriverFactory
 import data.repository.*
+import domain.clipboard.ClipboardManager
 import domain.queue.TaskQueue
 import domain.service.FileService
 import org.koin.core.module.dsl.singleOf
@@ -51,6 +52,9 @@ val domainModule = module {
 
     // 任务队列（核心调度组件）
     single { TaskQueue(get(), get(), get(), get(), get()) }
+
+    // 剪贴板管理器（用于影刀指令的读写）
+    singleOf(::ClipboardManager)
 }
 
 /**

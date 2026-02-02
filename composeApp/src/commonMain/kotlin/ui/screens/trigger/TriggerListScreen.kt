@@ -14,6 +14,7 @@ import androidx.compose.material.icons.outlined.FileCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import data.model.Trigger
 import kotlinx.coroutines.launch
 import ui.components.*
+import ui.theme.ShadowBotPink
 
 /**
  * 触发器列表页面组件
@@ -31,6 +33,7 @@ import ui.components.*
  * 显示触发器列表，支持：
  * - 查看触发器信息（ID、名称、描述、文件夹路径、创建时间）
  * - 复制文件夹路径到剪贴板
+ * - 复制 FileWebHook-App-Framework 框架指令到剪贴板
  * - 新建触发器
  * - 编辑触发器
  * - 删除触发器
@@ -49,8 +52,14 @@ fun TriggerListScreen(
     // 从 ViewModel 获取状态
     val triggers by viewModel.triggers
     val isLoading by viewModel.isLoading
+    val copyFrameworkMessage by viewModel.copyFrameworkMessage
+    val copyFrameworkSuccess by viewModel.copyFrameworkSuccess
+    val isCopyingFramework by viewModel.isCopyingFramework
     val scope = rememberCoroutineScope()
     val clipboardManager = LocalClipboardManager.current
+
+    // 项目根目录路径
+    val projectRootPath = remember { System.getProperty("user.dir") ?: "" }
 
     // 本地 UI 状态
     var showCreateDialog by remember { mutableStateOf(false) }
@@ -61,6 +70,14 @@ fun TriggerListScreen(
     // 页面加载时获取数据
     LaunchedEffect(Unit) {
         viewModel.loadTriggers()
+    }
+
+    // 监听复制框架指令的结果消息
+    LaunchedEffect(copyFrameworkMessage) {
+        copyFrameworkMessage?.let { message ->
+            snackbarMessage = message
+            viewModel.clearCopyFrameworkMessage()
+        }
     }
 
     Column(modifier = modifier.fillMaxSize().padding(24.dp)) {
@@ -143,9 +160,25 @@ fun TriggerListScreen(
                     TableColumn(header = "创建时间", weight = 1.2f) { trigger ->
                         TableCellText(trigger.createdAt.take(19).replace("T", " "))
                     },
-                    // 操作列
-                    TableColumn(header = "操作", weight = 1.2f) { trigger ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // 操作列（增加宽度以容纳新按钮）
+                    TableColumn(header = "操作", weight = 1.8f) { trigger ->
+                        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            // 复制框架指令按钮
+                            IconButton(
+                                onClick = {
+                                    scope.launch {
+                                        viewModel.copyFrameworkInstruction(trigger.id, projectRootPath)
+                                    }
+                                },
+                                enabled = !isCopyingFramework
+                            ) {
+                                Icon(
+                                    Icons.Default.ContentCopy,
+                                    contentDescription = "复制框架指令",
+                                    modifier = Modifier.size(16.dp),
+                                    tint = ShadowBotPink
+                                )
+                            }
                             // 查看记录按钮
                             IconButton(
                                 onClick = { onViewExecutionLogs(trigger.id) }

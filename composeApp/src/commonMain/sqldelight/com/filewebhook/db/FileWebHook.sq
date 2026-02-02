@@ -181,6 +181,14 @@ DELETE FROM user_trigger_permissions WHERE userId = ?;
 deletePermission:
 DELETE FROM user_trigger_permissions WHERE userId = ? AND triggerId = ?;
 
+-- 查询所有权限记录（按创建时间倒序）
+selectAllPermissions:
+SELECT * FROM user_trigger_permissions ORDER BY createdAt DESC;
+
+-- 查询指定用户的所有权限记录
+selectAllPermissionsByUserId:
+SELECT * FROM user_trigger_permissions WHERE userId = ? ORDER BY createdAt DESC;
+
 -- --------------------------------------------
 -- 执行记录相关查询
 -- --------------------------------------------

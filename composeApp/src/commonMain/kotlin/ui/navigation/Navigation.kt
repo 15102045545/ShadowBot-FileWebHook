@@ -26,6 +26,12 @@ enum class Screen(val title: String) {
     /** 用户管理页面 */
     USERS("用户管理"),
 
+    /** 用户权限管理页面 */
+    USER_PERMISSIONS("用户权限管理"),
+
     /** 软件配置页面 */
-    SETTINGS("软件配置")
+    SETTINGS("软件配置"),
+
+    /** 开发者功能页面 */
+    DEVELOPER("开发者功能")
 }

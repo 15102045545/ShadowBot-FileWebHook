@@ -19,11 +19,14 @@ import data.repository.PermissionRepository
 import data.repository.SettingsRepository
 import data.repository.TriggerRepository
 import data.repository.UserRepository
+import domain.clipboard.ClipboardManager
 import domain.queue.TaskQueue
 import org.koin.compose.koinInject
 import server.FileWebHookServer
 import ui.components.Sidebar
 import ui.navigation.Screen
+import ui.screens.developer.DeveloperScreen
+import ui.screens.developer.DeveloperViewModel
 import ui.screens.executionlog.ExecutionLogListScreen
 import ui.screens.executionlog.ExecutionLogViewModel
 import ui.screens.settings.SettingsScreen
@@ -32,6 +35,8 @@ import ui.screens.trigger.TriggerListScreen
 import ui.screens.trigger.TriggerViewModel
 import ui.screens.user.UserListScreen
 import ui.screens.user.UserViewModel
+import ui.screens.userpermission.UserPermissionScreen
+import ui.screens.userpermission.UserPermissionViewModel
 import ui.screens.queue.QueueManagementScreen
 import ui.screens.queue.QueueManagementViewModel
 import ui.theme.FileWebHookTheme
@@ -62,13 +67,19 @@ fun App() {
         val executionLogRepository = koinInject<ExecutionLogRepository>()
         val server = koinInject<FileWebHookServer>()
         val taskQueue = koinInject<TaskQueue>()
+        val clipboardManager = koinInject<ClipboardManager>()
 
         // 创建 ViewModel 实例（使用 remember 保持实例稳定）
-        val triggerViewModel = remember { TriggerViewModel(triggerRepository) }
+        val triggerViewModel = remember { TriggerViewModel(triggerRepository, settingsRepository, clipboardManager) }
         val userViewModel = remember { UserViewModel(userRepository, triggerRepository, permissionRepository) }
         val settingsViewModel = remember { SettingsViewModel(settingsRepository, server, taskQueue) }
         val executionLogViewModel = remember { ExecutionLogViewModel(executionLogRepository, triggerRepository, userRepository) }
         val queueManagementViewModel = remember { QueueManagementViewModel(taskQueue) }
+        val userPermissionViewModel = remember { UserPermissionViewModel(permissionRepository, userRepository, settingsRepository) }
+        val developerViewModel = remember { DeveloperViewModel(clipboardManager) }
+
+        // 项目根目录路径（用于开发者功能页面）
+        val projectRootPath = remember { System.getProperty("user.dir") ?: "" }
 
         // 启动时自动启动服务
         LaunchedEffect(Unit) {
@@ -118,7 +129,12 @@ fun App() {
                         initialTriggerId = executionLogFilterTriggerId
                     )
                     Screen.USERS -> UserListScreen(viewModel = userViewModel)
+                    Screen.USER_PERMISSIONS -> UserPermissionScreen(viewModel = userPermissionViewModel)
                     Screen.SETTINGS -> SettingsScreen(viewModel = settingsViewModel)
+                    Screen.DEVELOPER -> DeveloperScreen(
+                        viewModel = developerViewModel,
+                        projectRootPath = projectRootPath
+                    )
                 }
             }
         }

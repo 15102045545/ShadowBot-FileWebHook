@@ -11,8 +11,12 @@ import androidx.compose.runtime.*
 import data.model.CreateTriggerRequest
 import data.model.UpdateTriggerRequest
 import data.model.Trigger
+import data.repository.SettingsRepository
 import data.repository.TriggerRepository
-import kotlinx.coroutines.launch
+import domain.clipboard.ClipboardManager
+import domain.clipboard.ClipboardResult
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 触发器 ViewModel 类
@@ -20,8 +24,22 @@ import kotlinx.coroutines.launch
  * 管理触发器列表页面的 UI 状态和用户交互
  *
  * @property triggerRepository 触发器仓库
+ * @property settingsRepository 设置仓库
+ * @property clipboardManager 剪贴板管理器
  */
-class TriggerViewModel(private val triggerRepository: TriggerRepository) {
+class TriggerViewModel(
+    private val triggerRepository: TriggerRepository,
+    private val settingsRepository: SettingsRepository,
+    private val clipboardManager: ClipboardManager
+) {
+    companion object {
+        /**
+         * BaseFileWebHookAppFramework 文件相对路径
+         */
+        private const val BASE_FRAMEWORK_RELATIVE_PATH =
+            "composeApp/src/commonMain/kotlin/shadowbot/BaseFileWebHookAppFramework"
+    }
+
     /** 触发器列表状态 */
     private val _triggers = mutableStateOf<List<Trigger>>(emptyList())
     val triggers: State<List<Trigger>> = _triggers
@@ -33,6 +51,18 @@ class TriggerViewModel(private val triggerRepository: TriggerRepository) {
     /** 错误信息状态 */
     private val _error = mutableStateOf<String?>(null)
     val error: State<String?> = _error
+
+    /** 复制框架指令的结果消息 */
+    private val _copyFrameworkMessage = mutableStateOf<String?>(null)
+    val copyFrameworkMessage: State<String?> = _copyFrameworkMessage
+
+    /** 复制框架指令是否成功 */
+    private val _copyFrameworkSuccess = mutableStateOf(false)
+    val copyFrameworkSuccess: State<Boolean> = _copyFrameworkSuccess
+
+    /** 是否正在复制框架指令 */
+    private val _isCopyingFramework = mutableStateOf(false)
+    val isCopyingFramework: State<Boolean> = _isCopyingFramework
 
     /**
      * 加载触发器列表
@@ -117,5 +147,65 @@ class TriggerViewModel(private val triggerRepository: TriggerRepository) {
         } catch (e: Exception) {
             Result.failure(e)
         }
+    }
+
+    /**
+     * 复制 FileWebHook-App-Framework 框架指令到剪贴板
+     *
+     * 从 BaseFileWebHookAppFramework 文件读取元指令，
+     * 替换变量后先写入触发器目录下的临时文件，再从临时文件恢复到剪贴板
+     *
+     * @param triggerId 触发器 ID
+     * @param projectRootPath 项目根目录路径
+     */
+    suspend fun copyFrameworkInstruction(triggerId: Long, projectRootPath: String) {
+        _isCopyingFramework.value = true
+        _copyFrameworkMessage.value = null
+
+        try {
+            // 获取当前设置
+            val settings = settingsRepository.getSettings()
+
+            // 构建变量替换映射
+            val replacements = mapOf(
+                "triggerId" to triggerId.toString(),
+                "triggerFilesPath" to settings.triggerFilesPath,
+                "serverIpAndPort" to "http://127.0.0.1:${settings.httpPort}"
+            )
+
+            // 源文件路径（元指令文件）
+            val sourcePath = "$projectRootPath/$BASE_FRAMEWORK_RELATIVE_PATH"
+
+            // 目标文件路径（填充后的指令文件，存放在触发器目录下）
+            val targetPath = "${settings.triggerFilesPath}/$triggerId/FrameworkInstruction"
+
+            // 从源文件读取，替换变量，写入目标文件，最后从目标文件恢复到剪贴板
+            val result = withContext(Dispatchers.IO) {
+                clipboardManager.copyWithReplacementsViaFile(sourcePath, targetPath, replacements)
+            }
+
+            when (result) {
+                is ClipboardResult.Success -> {
+                    _copyFrameworkMessage.value = "框架指令已复制到剪贴板"
+                    _copyFrameworkSuccess.value = true
+                }
+                is ClipboardResult.Error -> {
+                    _copyFrameworkMessage.value = result.message
+                    _copyFrameworkSuccess.value = false
+                }
+            }
+        } catch (e: Exception) {
+            _copyFrameworkMessage.value = "复制失败: ${e.message}"
+            _copyFrameworkSuccess.value = false
+        } finally {
+            _isCopyingFramework.value = false
+        }
+    }
+
+    /**
+     * 清除复制框架指令的消息
+     */
+    fun clearCopyFrameworkMessage() {
+        _copyFrameworkMessage.value = null
     }
 }
