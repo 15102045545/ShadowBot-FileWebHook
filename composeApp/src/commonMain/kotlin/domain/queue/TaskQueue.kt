@@ -271,7 +271,8 @@ class TaskQueue(
         // 设置当前任务
         _currentTask.value = task
 
-        //
+        // v1.2.0 优化：移除任务间延迟
+        // 直接覆盖写入文件，影刀监听文件修改事件，无需等待
 
         // 写入 request.json 文件（供影刀文件触发器读取）
         val writeResult = fileService.writeRequestFile(
@@ -375,8 +376,8 @@ class TaskQueue(
             responseMessage = responseMessage
         )
 
-        // 删除 request.json 文件
-        fileService.deleteRequestFile(task.triggerId)
+        // v1.2.0 优化：不再删除 request.json 文件
+        // 文件将在下次任务执行时被覆盖，影刀监听文件修改事件
 
         // 获取用户信息以获取回调请求头
         val user = userRepository.getUserById(task.userId)

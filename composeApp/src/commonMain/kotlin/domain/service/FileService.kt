@@ -3,6 +3,11 @@
  *
  * 本文件提供 request.json 文件的读写操作
  * request.json 是 FileWebHook 与影刀文件触发器的交互媒介
+ *
+ * 文件操作策略（v1.2.0 优化）：
+ * - 直接覆盖写入文件，不删除后再创建
+ * - 影刀监听文件修改事件（而非创建事件）
+ * - 串行队列确保无并发问题
  */
 
 package domain.service
@@ -40,6 +45,11 @@ class FileService(
      * 写入 request.json 文件
      *
      * 当任务开始处理时调用，写入执行参数供影刀读取
+     *
+     * v1.2.0 优化：直接覆盖写入文件
+     * - 影刀监听文件修改事件（而非创建事件）
+     * - 串行队列确保无并发问题，文件唯一
+     * - 无需删除后再创建，直接覆盖即可触发影刀
      *
      * 文件内容格式（RequestFileContent）：
      * {
@@ -83,7 +93,7 @@ class FileService(
                 requestData = requestData
             )
 
-            // 写入文件
+            // 直接覆盖写入文件（影刀监听文件修改事件）
             requestFile.writeText(json.encodeToString(content))
 
             Result.success(requestFile)
@@ -95,7 +105,9 @@ class FileService(
     /**
      * 删除 request.json 文件
      *
-     * 当影刀执行完成后调用，清理临时文件
+     * v1.2.0 注意：当前版本不再调用此方法
+     * 文件将在下次任务执行时被覆盖，无需显式删除
+     * 保留此方法以备将来需要清理文件时使用
      *
      * @param triggerId 触发器 ID
      * @return Result<Unit> 成功或失败
