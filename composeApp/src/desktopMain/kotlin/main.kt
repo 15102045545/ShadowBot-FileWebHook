@@ -5,8 +5,10 @@
  * 负责初始化 Koin 依赖注入和创建应用窗口
  */
 
-import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.painter.BitmapPainter
+import androidx.compose.ui.res.loadImageBitmap
+import androidx.compose.ui.res.useResource
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
@@ -36,11 +38,17 @@ fun main() = application {
         placement = WindowPlacement.Maximized
     )
 
+    // 加载应用图标
+    val icon = remember {
+        useResource("icon.png") { loadImageBitmap(it) }
+    }
+
     // 创建应用窗口
     Window(
         onCloseRequest = ::exitApplication,  // 关闭窗口时退出应用
         state = windowState,
-        title = "FileWebHook - ShadowBot HTTP触发器"  // 窗口标题
+        title = "FileWebHook - ShadowBot HTTP触发器",  // 窗口标题
+        icon = BitmapPainter(icon)  // 窗口图标
     ) {
         // 渲染应用主组件
         App()

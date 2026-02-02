@@ -27,8 +27,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 # Build distribution packages
 ./gradlew :composeApp:packageMsi      # Windows
-./gradlew :composeApp:packageDmg      # macOS
-./gradlew :composeApp:packageDeb      # Linux
 
 # Clean build
 ./gradlew clean build

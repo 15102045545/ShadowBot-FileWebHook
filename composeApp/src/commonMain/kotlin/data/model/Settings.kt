@@ -54,7 +54,7 @@ data class AppSettings(
          */
         val DEFAULT = AppSettings(
             triggerFilesPath = "",           // 需要用户配置
-            globalQueueMaxLength = 50,       // 默认队列容量 50
+            globalQueueMaxLength = 10,       // 默认队列容量 50
             fileWebHookName = "xiaokeer",    // 默认名称
             fileWebHookSecretKey = "123456", // 默认密钥
             httpPort = 8089                  // 默认端口 8089

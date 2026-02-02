@@ -12,8 +12,7 @@ import os
 import sys
 
 # 源数据路径
-SOURCE_PATH = r"C:\project\ShadowBot-FileWebHook\shadowbot\InstructData"
-
+SOURCE_PATH = r"C:\Users\Administrator\PycharmProjects\xiaokee-python\InstructData\InstructData\InstructData"
 
 def restore_clipboard_data():
     """
@@ -49,8 +48,20 @@ def restore_clipboard_data():
                     format_name = fmt_data['format_name']
                     data = fmt_data['data']
 
+                    # 处理自定义格式ID（>= 0xC000 即 49152）
+                    # 自定义格式ID是机器相关的，需要用格式名重新注册获取当前机器的正确ID
+                    actual_format_id = format_id
+                    if format_id >= 0xC000 and format_name and format_name.startswith('Format_') is False:
+                        try:
+                            # 用格式名在当前机器上注册/获取正确的格式ID
+                            actual_format_id = win32clipboard.RegisterClipboardFormat(format_name)
+                            if actual_format_id != format_id:
+                                print(f"  ℹ️  格式 {format_name}: ID {format_id} -> {actual_format_id} (已映射)")
+                        except Exception as reg_err:
+                            print(f"  ⚠️  注册格式 {format_name} 失败: {reg_err}, 使用原ID")
+
                     # 设置剪贴板数据
-                    win32clipboard.SetClipboardData(format_id, data)
+                    win32clipboard.SetClipboardData(actual_format_id, data)
 
                     # 显示数据大小
                     if isinstance(data, bytes):

@@ -113,8 +113,8 @@ compose.desktop {
 
         // 原生分发包配置
         nativeDistributions {
-            // 目标格式：Windows MSI 安装包和 EXE 安装程序
-            targetFormats(TargetFormat.Msi, TargetFormat.Exe)
+            // 目标格式：仅支持 Windows MSI 安装包
+            targetFormats(TargetFormat.Msi)
 
             // 应用包名
             packageName = "FileWebHook"
@@ -125,12 +125,29 @@ compose.desktop {
             // 开发商
             vendor = "ShadowBot"
 
+            // 包含的 JDK 模块（解决 java/sql/DriverManager 错误）
+            // SQLite JDBC 驱动需要 java.sql 模块
+            modules("java.sql")
+
+            // 包含卸载脚本到安装目录
+            appResourcesRootDir.set(project.layout.projectDirectory.dir("src/desktopMain/resources/app-resources"))
+
             // Windows 平台特定配置
             windows {
+                // 应用图标（使用品牌 Logo）
+                iconFile.set(project.file("src/desktopMain/resources/icon.png"))
                 // 开始菜单文件夹名称
                 menuGroup = "FileWebHook"
                 // 升级 UUID（用于 MSI 安装包升级识别）
                 upgradeUuid = "8b5a7d9e-3f2c-4e8a-b1d6-9c4f5e7a8b3d"
+                // 在用户桌面创建快捷方式
+                shortcut = true
+                // 在开始菜单创建快捷方式
+                menu = true
+                // 安装目录（默认安装到 Program Files）
+                dirChooser = true
+                // 允许用户选择是否创建桌面快捷方式
+                perUserInstall = true
             }
         }
     }

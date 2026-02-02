@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-blue" alt="Platform">
+  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20-blue" alt="Platform">
   <img src="https://img.shields.io/badge/Kotlin-2.0.21-purple" alt="Kotlin">
   <img src="https://img.shields.io/badge/Compose-1.7.1-green" alt="Compose">
   <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License">
@@ -28,15 +28,8 @@
 
 ## 简介
 
-FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解决其文件触发器无法直接接收 HTTP 请求的问题。
+FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解决影刀应用无法被 HTTP 请求触发的问题。
 
-**工作流程：**
-
-```
-外部服务 ──HTTP──> FileWebHook ──文件──> 影刀文件触发器 ──执行──> 影刀机器人
-    ↑                                                              │
-    └──────────────────────HTTP 回调─────────────────────────────────┘
-```
 
 ## 功能特性
 
@@ -51,7 +44,7 @@ FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解�
 
 ### 系统要求
 
-- **操作系统**: Windows 10+、macOS 10.14+、Linux (Ubuntu 18.04+)
+- **操作系统**: Windows 10+
 - **Java**: JDK 17 或更高版本
 - **影刀 RPA**: 需安装影刀客户端并配置文件触发器
 
@@ -62,8 +55,6 @@ FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解�
 | 平台 | 文件 |
 |------|------|
 | Windows | `FileWebHook-x.x.x.msi` |
-| macOS | `FileWebHook-x.x.x.dmg` |
-| Linux | `FileWebHook-x.x.x.deb` |
 
 ### 从源码构建
 
@@ -72,20 +63,38 @@ FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解�
 git clone https://github.com/15102045545/ShadowBot-FileWebHook.git
 cd ShadowBot-FileWebHook
 
-# 运行应用
+# 运行应用（开发模式）
 ./gradlew :composeApp:run
+# Windows: gradlew.bat :composeApp:run
 
-# 打包安装程序
-./gradlew :composeApp:packageMsi      # Windows
-./gradlew :composeApp:packageDmg      # macOS
-./gradlew :composeApp:packageDeb      # Linux
+# 打包 MSI 安装程序
+./gradlew :composeApp:packageMsi
+# Windows: gradlew.bat :composeApp:packageMsi
+# 输出位置: composeApp/build/compose/binaries/main/msi/FileWebHook-x.x.x.msi
 ```
+
+#### 打包说明
+
+| 命令 | 说明 | 输出位置 |
+|------|------|----------|
+| `gradlew :composeApp:run` | 运行应用（开发模式） | - |
+| `gradlew :composeApp:packageMsi` | 打包 Windows MSI 安装包 | `composeApp/build/compose/binaries/main/msi/` |
+
+**打包要求：**
+- JDK 17 或更高版本
+- WiX Toolset 3.11（首次打包时 Gradle 会自动下载，如网络问题可手动下载放置到 `C:\Program Files\wix311-binaries`）
+
+**安装包特性：**
+- 自动创建桌面快捷方式
+- 自动创建开始菜单快捷方式
+- 支持通过控制面板卸载
+- 安装目录包含 `uninstall.bat` 卸载脚本（同时清理用户数据）
 
 ## 使用指南
 
 ### 1. 配置系统设置
 
-启动应用后，进入「系统设置」页面配置：
+启动应用后，进入「软件设置」页面配置：
 
 | 配置项 | 说明 | 示例 |
 |--------|------|------|
@@ -125,104 +134,6 @@ cd ShadowBot-FileWebHook
 3. 在机器人流程开始时调用 FileWebHook 的 `/triggered` 接口
 4. 在机器人流程结束时调用 FileWebHook 的 `/notify` 接口
 
-## API 文档
-
-### 外部服务调用接口
-
-#### POST /trigger/execute
-
-触发执行请求。
-
-**请求体：**
-
-```json
-{
-  "userId": "用户ID",
-  "secretKey": "用户密钥",
-  "triggerId": "触发器ID",
-  "requestParam": {
-    "key1": "value1",
-    "key2": "value2"
-  }
-}
-```
-
-**响应体：**
-
-```json
-{
-  "code": "C_0",
-  "message": "请求已接受",
-  "eventId": "1-1234567890",
-  "triggerId": "1",
-  "queuePosition": 0
-}
-```
-
-**响应码说明：**
-
-| 代码 | 说明 |
-|------|------|
-| C_0 | 成功 |
-| C_1 | 身份验证失败 |
-| C_2 | 无权限 |
-| C_3 | 触发器不存在 |
-| C_4 | 非法业务参数 |
-| C_5 | 队列已满 |
-
-### 影刀回调接口
-
-#### POST /triggered
-
-影刀开始执行时调用。
-
-```json
-{
-  "triggerId": "触发器ID",
-  "eventId": "事件ID"
-}
-```
-
-#### POST /notify
-
-影刀执行完成时调用。
-
-```json
-{
-  "triggerId": "触发器ID",
-  "eventId": "事件ID",
-  "responseCode": "200",
-  "responseMessage": "执行成功",
-  "responseData": {
-    "result": "业务返回数据"
-  }
-}
-```
-
-### 外部服务回调
-
-FileWebHook 在收到影刀执行结果后，会回调外部服务：
-
-**URL:** `POST {callbackUrl}/{fileWebHookName}/filewebhook/notify`
-
-**请求体：**
-
-```json
-{
-  "fileWebHookName": "FileWebHook名称",
-  "fileWebHookSecretKey": "FileWebHook密钥",
-  "triggerId": "触发器ID",
-  "eventId": "事件ID",
-  "responseCode": "200",
-  "responseMessage": "执行成功",
-  "responseData": {},
-  "requestTime": "请求时间",
-  "shadowBotStartTime": "影刀开始时间",
-  "shadowBotEndTime": "影刀结束时间",
-  "totalDuration": 5000,
-  "shadowBotDuration": 3000
-}
-```
 
 ## 技术架构
 

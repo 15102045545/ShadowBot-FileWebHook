@@ -47,10 +47,13 @@ class SettingsViewModel(
      * 加载系统设置
      *
      * 从数据库读取设置并更新服务器状态
+     * 首次加载时会初始化默认配置（如果数据库为空）
      */
     suspend fun loadSettings() {
         _isLoading.value = true
         try {
+            // 确保数据库中有默认配置
+            settingsRepository.initializeDefaultSettings()
             _settings.value = settingsRepository.getSettings()
             _serverRunning.value = server.isRunning
         } finally {
@@ -127,12 +130,4 @@ class SettingsViewModel(
         }
     }
 
-    /**
-     * 收集队列大小
-     *
-     * 用于从 TaskQueue 的 StateFlow 收集实时队列大小
-     */
-    fun collectQueueSize() {
-        // 从 TaskQueue 的 StateFlow 收集数据
-    }
 }
