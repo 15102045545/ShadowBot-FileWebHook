@@ -105,6 +105,27 @@ fun UserListScreen(
             DataTable(
                 items = users,
                 columns = listOf(
+                    // 用户ID列（带复制按钮）
+                    TableColumn(header = "用户ID", weight = 1f) { user ->
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            TableCellText(
+                                text = user.userId,
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(
+                                onClick = {
+                                    clipboardManager.setText(AnnotatedString(user.userId))
+                                    snackbarMessage = "已复制用户ID到剪贴板"
+                                }
+                            ) {
+                                Icon(
+                                    Icons.Outlined.FileCopy,
+                                    contentDescription = "复制用户ID",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
+                    },
                     // 名称列
                     TableColumn(header = "名称", weight = 1f) { user ->
                         TableCellText(user.name)

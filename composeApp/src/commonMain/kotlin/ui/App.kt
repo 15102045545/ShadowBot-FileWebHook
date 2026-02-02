@@ -32,6 +32,8 @@ import ui.screens.trigger.TriggerListScreen
 import ui.screens.trigger.TriggerViewModel
 import ui.screens.user.UserListScreen
 import ui.screens.user.UserViewModel
+import ui.screens.queue.QueueManagementScreen
+import ui.screens.queue.QueueManagementViewModel
 import ui.theme.FileWebHookTheme
 import ui.theme.ShadowBotOutline
 
@@ -66,6 +68,7 @@ fun App() {
         val userViewModel = remember { UserViewModel(userRepository, triggerRepository, permissionRepository) }
         val settingsViewModel = remember { SettingsViewModel(settingsRepository, server, taskQueue) }
         val executionLogViewModel = remember { ExecutionLogViewModel(executionLogRepository, triggerRepository, userRepository) }
+        val queueManagementViewModel = remember { QueueManagementViewModel(taskQueue) }
 
         // 启动时自动启动服务
         LaunchedEffect(Unit) {
@@ -106,6 +109,9 @@ fun App() {
                             executionLogFilterTriggerId = triggerId
                             currentScreen = Screen.EXECUTION_LOGS
                         }
+                    )
+                    Screen.QUEUE_MANAGEMENT -> QueueManagementScreen(
+                        viewModel = queueManagementViewModel
                     )
                     Screen.EXECUTION_LOGS -> ExecutionLogListScreen(
                         viewModel = executionLogViewModel,

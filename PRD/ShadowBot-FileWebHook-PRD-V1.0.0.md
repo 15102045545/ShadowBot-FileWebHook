@@ -794,7 +794,6 @@ FileWebHook 作为 HTTP Server 运行在本机，外部服务需要能够通过�
 |----------|----------|
 | 用户已请求 | REQUESTED |
 | 已收到请求放入队列 | QUEUED |
-| 已预响应外部服务 | PRE_RESPONDED |
 | 已写入文件待影刀执行 | FILE_WRITTEN |
 | 影刀执行中 | EXECUTING |
 | 影刀执行完成 | COMPLETED |

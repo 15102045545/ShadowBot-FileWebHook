@@ -129,13 +129,10 @@ compose.desktop {
             // SQLite JDBC 驱动需要 java.sql 模块
             modules("java.sql")
 
-            // 包含卸载脚本到安装目录
-            appResourcesRootDir.set(project.layout.projectDirectory.dir("src/desktopMain/resources/app-resources"))
-
             // Windows 平台特定配置
             windows {
-                // 应用图标（使用品牌 Logo）
-                iconFile.set(project.file("src/desktopMain/resources/icon.png"))
+                // 应用图标（使用品牌 Logo，必须为 .ico 格式以支持任务栏和快捷方式图标）
+                iconFile.set(project.file("src/desktopMain/resources/icon.ico"))
                 // 开始菜单文件夹名称
                 menuGroup = "FileWebHook"
                 // 升级 UUID（用于 MSI 安装包升级识别）

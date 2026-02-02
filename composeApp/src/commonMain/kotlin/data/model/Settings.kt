@@ -57,7 +57,7 @@ data class AppSettings(
             globalQueueMaxLength = 10,       // 默认队列容量 50
             fileWebHookName = "xiaokeer",    // 默认名称
             fileWebHookSecretKey = "123456", // 默认密钥
-            httpPort = 8089                  // 默认端口 8089
+            httpPort = 58700                  // 默认端口
         )
     }
 }

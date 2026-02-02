@@ -64,9 +64,6 @@ enum class ExecutionStatus(val displayName: String) {
     /** 已收到请求放入队列 - 请求已入队等待处理 */
     QUEUED("已收到请求放入队列"),
 
-    /** 已预响应外部服务 - 已返回响应给外部服务 */
-    PRE_RESPONDED("已预响应外部服务"),
-
     /** 已写入文件待影刀执行 - request.json 文件已写入 */
     FILE_WRITTEN("已写入文件待影刀执行"),
 

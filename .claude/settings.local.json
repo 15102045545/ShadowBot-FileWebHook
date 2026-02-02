@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cmd /c gradlew.bat :composeApp:packageMsi)"
+      "Bash(cmd /c gradlew.bat :composeApp:packageMsi)",
+      "Bash(where:*)",
+      "Bash(powershell -Command \"$img = [System.Drawing.Image]::FromFile\\(''C:\\\\project\\\\ShadowBot-FileWebHook\\\\composeApp\\\\src\\\\desktopMain\\\\resources\\\\icon.png''\\); Write-Host $img.Width $img.Height\")",
+      "Bash(powershell \"Add-Type -AssemblyName System.Drawing; [System.Drawing.Image]::FromFile\\(''C:\\\\project\\\\ShadowBot-FileWebHook\\\\composeApp\\\\src\\\\desktopMain\\\\resources\\\\icon.png''\\).Size\")",
+      "Bash(del:*)",
+      "Bash(cmd //c:*)"
     ]
   }
 }

@@ -15,6 +15,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
@@ -65,6 +66,16 @@ fun Sidebar(
             label = Screen.TRIGGERS.title,
             selected = currentScreen == Screen.TRIGGERS,
             onClick = { onScreenSelected(Screen.TRIGGERS) }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // 导航菜单项：队列管理
+        SidebarItem(
+            icon = Icons.AutoMirrored.Filled.List,
+            label = Screen.QUEUE_MANAGEMENT.title,
+            selected = currentScreen == Screen.QUEUE_MANAGEMENT,
+            onClick = { onScreenSelected(Screen.QUEUE_MANAGEMENT) }
         )
 
         Spacer(modifier = Modifier.height(8.dp))

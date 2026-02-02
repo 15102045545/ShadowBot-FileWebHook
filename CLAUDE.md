@@ -174,3 +174,28 @@ Settings are stored in SQLite database (`settings` table) and managed through UI
 - `FileWebHookServer` (server/FileWebHookServer.kt) - Ktor CIO embedded server with routes for external services and ShadowBot callbacks
 - `FileService` (domain/service/FileService.kt) - Manages writing/deleting request.json files in trigger folders
 - `CallbackClient` (client/CallbackClient.kt) - Ktor HTTP client for posting results to external services
+
+## Claude Code 执行命令注意事项
+
+**Windows 环境下执行 Gradle 命令：**
+
+Claude Code 的 Bash 工具在 Windows 上运行时，无法直接识别 `.bat` 文件。必须通过 `cmd //c` 调用，并使用**完整绝对路径**。
+
+❌ 错误示例（都会失败）：
+```bash
+gradlew.bat :composeApp:build                    # bash 找不到命令
+.\gradlew.bat :composeApp:build                  # 同上
+cmd //c "gradlew.bat :composeApp:build"          # 相对路径无效
+```
+
+✅ 正确示例：
+```bash
+cmd //c "C:/project/ShadowBot-FileWebHook/gradlew.bat :composeApp:build"
+cmd //c "C:/project/ShadowBot-FileWebHook/gradlew.bat :composeApp:run"
+cmd //c "C:/project/ShadowBot-FileWebHook/gradlew.bat :composeApp:packageMsi"
+```
+
+**关键点：**
+1. 使用 `cmd //c` 前缀调用 Windows 命令
+2. 使用完整的绝对路径指向 `gradlew.bat`
+3. 路径使用正斜杠 `/` 而非反斜杠 `\`

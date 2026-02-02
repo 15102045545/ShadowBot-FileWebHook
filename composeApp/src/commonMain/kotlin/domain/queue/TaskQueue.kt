@@ -112,6 +112,10 @@ class TaskQueue(
     private val _queueSize = MutableStateFlow(0)
     val queueSize: StateFlow<Int> = _queueSize
 
+    /** 待处理任务列表（StateFlow 供 UI 观察） */
+    private val _pendingTasksFlow = MutableStateFlow<List<TriggerTask>>(emptyList())
+    val pendingTasksFlow: StateFlow<List<TriggerTask>> = _pendingTasksFlow
+
     /** 当前任务完成信号（用于等待影刀回调） */
     private var currentTaskCompletion: CompletableDeferred<Unit>? = null
 
@@ -153,6 +157,7 @@ class TaskQueue(
         mutex.withLock {
             pendingTasks.clear()
             _queueSize.value = 0
+            _pendingTasksFlow.value = emptyList()
         }
         // 停止消费者和关闭通道
         consumerJob?.cancel()
@@ -217,6 +222,7 @@ class TaskQueue(
             mutex.withLock {
                 pendingTasks.add(task)
                 _queueSize.value = pendingTasks.size
+                _pendingTasksFlow.value = pendingTasks.toList()
             }
             // 更新状态为已入队
             executionLogRepository.updateStatus(eventId, ExecutionStatus.QUEUED)
@@ -259,13 +265,13 @@ class TaskQueue(
         mutex.withLock {
             pendingTasks.removeAll { it.eventId == task.eventId }
             _queueSize.value = pendingTasks.size
+            _pendingTasksFlow.value = pendingTasks.toList()
         }
 
         // 设置当前任务
         _currentTask.value = task
 
-        // 更新状态：准备响应
-        executionLogRepository.updateStatus(task.eventId, ExecutionStatus.PRE_RESPONDED)
+        //
 
         // 写入 request.json 文件（供影刀文件触发器读取）
         val writeResult = fileService.writeRequestFile(

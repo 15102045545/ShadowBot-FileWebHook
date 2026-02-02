@@ -333,7 +333,7 @@ private fun PaginationControls(
 private fun ExecutionStatusChip(status: ExecutionStatus) {
     val color = when (status) {
         ExecutionStatus.REQUESTED, ExecutionStatus.QUEUED -> MaterialTheme.colorScheme.secondary
-        ExecutionStatus.PRE_RESPONDED, ExecutionStatus.FILE_WRITTEN -> MaterialTheme.colorScheme.tertiary
+         ExecutionStatus.FILE_WRITTEN -> MaterialTheme.colorScheme.tertiary
         ExecutionStatus.EXECUTING -> MaterialTheme.colorScheme.primary
         ExecutionStatus.COMPLETED, ExecutionStatus.CALLBACK_SUCCESS -> MaterialTheme.colorScheme.primary
         ExecutionStatus.CALLBACK_FAILED -> MaterialTheme.colorScheme.error
@@ -342,7 +342,6 @@ private fun ExecutionStatusChip(status: ExecutionStatus) {
     val text = when (status) {
         ExecutionStatus.REQUESTED -> "已请求"
         ExecutionStatus.QUEUED -> "已入队"
-        ExecutionStatus.PRE_RESPONDED -> "准备响应"
         ExecutionStatus.FILE_WRITTEN -> "文件已写"
         ExecutionStatus.EXECUTING -> "执行中"
         ExecutionStatus.COMPLETED -> "已完成"
