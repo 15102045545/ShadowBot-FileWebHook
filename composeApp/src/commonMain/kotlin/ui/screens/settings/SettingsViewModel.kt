@@ -2,7 +2,7 @@
  * 系统设置 ViewModel
  *
  * 本文件提供系统设置页面的状态管理和业务逻辑
- * 管理 HTTP 服务器的启停和系统配置
+ * 管理 HTTP 服务器的启停和系统配置，以及队列信息的实时监控
  */
 
 package ui.screens.settings
@@ -12,12 +12,19 @@ import data.model.AppSettings
 import data.repository.SettingsRepository
 import domain.python.ShadowBotPythonFinder
 import domain.queue.TaskQueue
+import domain.queue.TriggerTask
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collectLatest
 import server.FileWebHookServer
+import java.awt.Desktop
+import java.io.File
+import kotlin.system.exitProcess
 
 /**
  * 设置 ViewModel 类
  *
  * 管理系统设置页面的 UI 状态和服务控制
+ * 同时管理队列信息的实时展示
  *
  * @property settingsRepository 设置仓库
  * @property server HTTP 服务器实例
@@ -53,6 +60,81 @@ class SettingsViewModel(
     /** Python 检测消息 */
     private val _pythonDetectionMessage = mutableStateOf<String?>(null)
     val pythonDetectionMessage: State<String?> = _pythonDetectionMessage
+
+    // ==========================================
+    // 队列信息相关状态
+    // ==========================================
+
+    /** 待处理任务列表状态 */
+    private val _pendingTasks = mutableStateOf<List<TriggerTask>>(emptyList())
+    val pendingTasks: State<List<TriggerTask>> = _pendingTasks
+
+    /** 当前正在执行的任务状态 */
+    private val _currentTask = mutableStateOf<TriggerTask?>(null)
+    val currentTask: State<TriggerTask?> = _currentTask
+
+    /** 协程作用域 */
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+
+    /** 队列数据收集 Job */
+    private var queueCollectionJob: Job? = null
+
+    // ==========================================
+    // 运行时数据目录相关
+    // ==========================================
+
+    /**
+     * 获取运行时数据目录路径
+     *
+     * @return 运行时数据目录的绝对路径
+     */
+    fun getRuntimeDataPath(): String {
+        return File(System.getProperty("user.home"), ".filewebhook").absolutePath
+    }
+
+    /**
+     * 打开运行时数据目录
+     *
+     * 使用系统默认文件管理器打开目录
+     */
+    fun openRuntimeDataDirectory() {
+        try {
+            val dataDir = File(getRuntimeDataPath())
+            if (!dataDir.exists()) {
+                dataDir.mkdirs()
+            }
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(dataDir)
+            }
+        } catch (e: Exception) {
+            // 忽略打开失败的异常
+        }
+    }
+
+    /**
+     * 清空运行时数据目录并退出应用
+     *
+     * 删除所有运行时数据后关闭应用程序
+     */
+    fun clearRuntimeDataAndExit() {
+        try {
+            // 停止服务器和队列
+            server.stop()
+            taskQueue.stop()
+
+            // 删除运行时数据目录
+            val dataDir = File(getRuntimeDataPath())
+            if (dataDir.exists()) {
+                dataDir.deleteRecursively()
+            }
+
+            // 退出应用
+            exitProcess(0)
+        } catch (e: Exception) {
+            // 即使发生异常也尝试退出
+            exitProcess(1)
+        }
+    }
 
     /**
      * 加载系统设置
@@ -157,4 +239,50 @@ class SettingsViewModel(
         }
     }
 
+    // ==========================================
+    // 队列数据收集方法
+    // ==========================================
+
+    /**
+     * 开始收集队列数据
+     *
+     * 启动协程持续收集 TaskQueue 的 StateFlow 数据
+     */
+    fun startQueueDataCollection() {
+        queueCollectionJob?.cancel()
+        queueCollectionJob = scope.launch {
+            // 并行收集三个 StateFlow
+            launch {
+                taskQueue.pendingTasksFlow.collectLatest { tasks ->
+                    _pendingTasks.value = tasks
+                }
+            }
+            launch {
+                taskQueue.currentTask.collectLatest { task ->
+                    _currentTask.value = task
+                }
+            }
+            launch {
+                taskQueue.queueSize.collectLatest { size ->
+                    _queueSize.value = size
+                }
+            }
+        }
+    }
+
+    /**
+     * 停止收集队列数据
+     */
+    fun stopQueueDataCollection() {
+        queueCollectionJob?.cancel()
+        queueCollectionJob = null
+    }
+
+    /**
+     * 清理资源
+     */
+    fun dispose() {
+        stopQueueDataCollection()
+        scope.cancel()
+    }
 }

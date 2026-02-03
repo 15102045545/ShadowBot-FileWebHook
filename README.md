@@ -36,7 +36,8 @@ FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解�
 - 🌐 **HTTP 转文件触发器** - 接收 HTTP 请求，转换为 `request.json` 文件触发影刀
 - 🔐 **多用户权限管理** - 支持多用户、多触发器的细粒度权限控制
 - 📊 **执行记录追踪** - 完整记录每次执行的请求、响应和耗时统计
-- 🔄 **双向回调机制** - 影刀执行完成后自动回调外部服务
+- 🔄 **自动回调机制** - 影刀执行完成后回调FileWebHook,FileWebHook自动转发结果给外部服务
+- 🗄️ **本地数据库存储** - 使用 SQLite 存储用户
 - 📋 **FIFO 任务队列** - 串行执行，确保任务有序处理
 - 🎨 **现代化 UI** - 基于 Compose Multiplatform 的原生桌面界面
 
@@ -52,9 +53,9 @@ FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解�
 
 从 [Releases](https://github.com/15102045545/ShadowBot-FileWebHook/releases) 页面下载对应平台的安装包：
 
-| 平台 | 文件 |
-|------|------|
-| Windows | `FileWebHook-x.x.x.msi` |
+| 平台 | 文件                      |
+|------|-------------------------|
+| Windows | `FileWebHook-1.0.0.msi` |
 
 ### 从源码构建
 
@@ -92,48 +93,7 @@ cd ShadowBot-FileWebHook
 
 ## 使用指南
 
-### 1. 配置系统设置
-
-启动应用后，进入「软件设置」页面配置：
-
-| 配置项 | 说明 | 示例 |
-|--------|------|------|
-| 触发器文件路径 | 影刀文件触发器监听的目录 | `C:\FileWebHook\triggers` |
-| HTTP 端口 | 服务监听端口 | `8089` |
-| FileWebHook 名称 | 本机标识 | `my-filewebhook` |
-| FileWebHook 密钥 | 回调验证密钥 | `your-secret-key` |
-
-### 2. 创建触发器
-
-在「触发器管理」页面创建触发器，每个触发器对应影刀的一个文件触发器：
-
-1. 点击「新建触发器」
-2. 填写名称和描述
-3. 复制生成的文件夹路径
-4. 在影刀中配置文件触发器监听该路径
-
-### 3. 创建用户
-
-在「用户管理」页面为外部服务创建调用凭证：
-
-1. 点击「新建用户」
-2. 填写名称和回调地址
-3. 保存生成的 `userId` 和 `secretKey`
-4. 分配触发器权限
-
-### 4. 启动服务
-
-在「系统设置」页面点击「启动服务」按钮。
-
-### 5. 配置影刀
-
-在影刀中创建文件触发器：
-
-1. 监听路径设置为触发器的文件夹路径
-2. 监听文件名设置为 `request.json`
-3. 在机器人流程开始时调用 FileWebHook 的 `/triggered` 接口
-4. 在机器人流程结束时调用 FileWebHook 的 `/notify` 接口
-
+待开发者自行补充,AI不要补充
 
 ## 技术架构
 
@@ -150,38 +110,10 @@ cd ShadowBot-FileWebHook
 
 ### 项目结构
 
-```
-ShadowBot-FileWebHook/
-├── composeApp/
-│   └── src/
-│       ├── commonMain/kotlin/
-│       │   ├── data/           # 数据层（模型、仓库）
-│       │   ├── domain/         # 业务层（队列、服务）
-│       │   ├── server/         # HTTP 服务层
-│       │   ├── client/         # HTTP 客户端
-│       │   ├── di/             # 依赖注入
-│       │   └── ui/             # UI 层
-│       └── desktopMain/kotlin/ # Desktop 平台实现
-├── gradle/                     # Gradle 配置
-└── docs/                       # 文档
-```
 
 ### 架构模式
 
-采用 **Clean Architecture** 分层架构：
-
-```
-┌─────────────────────────────────────────┐
-│                UI Layer                 │
-│   (Compose Screens, ViewModels)         │
-├─────────────────────────────────────────┤
-│              Domain Layer               │
-│   (TaskQueue, FileService, Validator)   │
-├─────────────────────────────────────────┤
-│               Data Layer                │
-│   (Repositories, Database, Models)      │
-└─────────────────────────────────────────┘
-```
+```html
 
 ## 截图
 
@@ -236,3 +168,4 @@ ShadowBot-FileWebHook/
 <p align="center">
   Made with ❤️ for RPA automation
 </p>
+```

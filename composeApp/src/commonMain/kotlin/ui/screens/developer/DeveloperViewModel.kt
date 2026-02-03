@@ -4,6 +4,8 @@
  * 本文件提供开发者功能页面的状态管理和业务逻辑
  * 主要功能：
  * 1. 将系统剪贴板中的影刀指令转储到文件（使用 Python 脚本）
+ *
+ * 注意：开发者功能（指令转储）仅在开发环境中可用，打包后的软件不包含此功能
  */
 
 package ui.screens.developer
@@ -23,15 +25,6 @@ import kotlinx.coroutines.withContext
 class DeveloperViewModel(
     private val pythonExecutor: PythonExecutor
 ) {
-    companion object {
-        /**
-         * BaseFileWebHookAppFramework.pkl 文件保存路径
-         * 相对于项目根目录
-         */
-        private const val BASE_FRAMEWORK_RELATIVE_PATH =
-            "composeApp/src/commonMain/kotlin/shadowbot/BaseFileWebHookAppFramework.pkl"
-    }
-
     /** 加载中状态 */
     private val _isLoading = mutableStateOf(false)
     val isLoading: State<Boolean> = _isLoading
@@ -49,17 +42,35 @@ class DeveloperViewModel(
     val showResultDialog: State<Boolean> = _showResultDialog
 
     /**
+     * 检查是否在开发环境中运行
+     *
+     * @return true 如果是开发环境，false 如果是生产环境（打包后）
+     */
+    fun isDevEnvironment(): Boolean {
+        return pythonExecutor.isDevEnvironment()
+    }
+
+    /**
      * 转储系统剪贴板中的影刀指令到文件
      *
      * 使用 Python 脚本将剪贴板中的所有格式数据（包括影刀自定义格式）
      * 序列化保存到 BaseFileWebHookAppFramework.pkl 文件
      *
-     * @param projectRootPath 项目根目录路径
+     * 开发环境：保存到 desktopMain/resources/scripts 目录，打包时会被包含到安装包
+     * 生产环境：此功能不可用
      */
-    suspend fun dumpClipboardInstruction(projectRootPath: String) {
+    suspend fun dumpClipboardInstruction() {
         _isLoading.value = true
         try {
-            val savePath = "$projectRootPath/$BASE_FRAMEWORK_RELATIVE_PATH"
+            // 获取开发环境的保存路径
+            val savePath = pythonExecutor.getDevResourcesSavePath()
+
+            if (savePath == null) {
+                _resultMessage.value = "指令转储功能仅在开发环境中可用"
+                _isSuccess.value = false
+                _showResultDialog.value = true
+                return
+            }
 
             val result = withContext(Dispatchers.IO) {
                 pythonExecutor.dumpClipboardToFile(savePath)

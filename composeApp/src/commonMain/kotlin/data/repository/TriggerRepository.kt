@@ -65,12 +65,8 @@ class TriggerRepository(
      * @return 创建成功的触发器对象
      */
     suspend fun createTrigger(request: CreateTriggerRequest): Trigger = withContext(Dispatchers.IO) {
-        // 获取 triggerFilesPath 配置
-        val settings = settingsRepository.getSettings()
-        val basePath = settings.triggerFilesPath.ifEmpty {
-            // 默认路径：用户目录/.filewebhook/triggerFiles
-            File(System.getProperty("user.home"), ".filewebhook/triggerFiles").absolutePath
-        }
+        // 获取固定的 triggerFilesPath 路径
+        val basePath = data.model.AppSettings.getTriggerFilesPath()
 
         // 计算新的触发器 ID
         val lastId = queries.selectLastTriggerId().executeAsOneOrNull()?.lastId ?: 0L

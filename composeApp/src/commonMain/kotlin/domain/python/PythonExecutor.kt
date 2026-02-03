@@ -34,19 +34,43 @@ data class PythonResult(
 )
 
 /**
+ * 脚本路径提供者接口
+ *
+ * 用于获取脚本文件路径，允许不同平台提供不同实现
+ */
+interface ScriptPathProvider {
+    /**
+     * 获取指定脚本的完整路径
+     *
+     * @param scriptName 脚本文件名
+     * @return 脚本文件的绝对路径
+     */
+    fun getScriptPath(scriptName: String): String
+
+    /**
+     * 获取 BaseFileWebHookAppFramework.pkl 的路径
+     *
+     * @return 元指令文件的绝对路径
+     */
+    fun getBaseFrameworkPath(): String
+}
+
+/**
  * Python 脚本执行器
  *
  * 管理 Python 解释器路径，执行 Python 脚本并解析输出
  *
  * @property settingsRepository 设置仓库，用于获取 Python 解释器路径配置
  * @property pythonFinder Python 解释器查找器
+ * @property scriptPathProvider 脚本路径提供者
  */
 class PythonExecutor(
     private val settingsRepository: SettingsRepository,
-    private val pythonFinder: ShadowBotPythonFinder = ShadowBotPythonFinder()
+    private val pythonFinder: ShadowBotPythonFinder = ShadowBotPythonFinder(),
+    private val scriptPathProvider: ScriptPathProvider? = null
 ) {
     companion object {
-        /** Python 脚本所在目录（相对于项目根目录） */
+        /** Python 脚本所在目录（相对于项目根目录，仅开发环境使用） */
         private const val SCRIPTS_RELATIVE_PATH = "composeApp/src/commonMain/kotlin/shadowbot"
 
         /** 脚本执行超时时间（秒） */
@@ -98,8 +122,7 @@ class PythonExecutor(
             )
 
         // 构建脚本完整路径
-        val projectRoot = System.getProperty("user.dir") ?: ""
-        val scriptPath = File(projectRoot, "$SCRIPTS_RELATIVE_PATH/$scriptName").absolutePath
+        val scriptPath = getScriptFilePath(scriptName)
 
         // 检查脚本是否存在
         if (!File(scriptPath).exists()) {
@@ -117,9 +140,12 @@ class PythonExecutor(
             // 执行命令
             val processBuilder = ProcessBuilder(command)
             processBuilder.redirectErrorStream(true)
+            // 设置 PYTHONIOENCODING 确保 Python 使用 UTF-8 输出
+            processBuilder.environment()["PYTHONIOENCODING"] = "utf-8"
 
             val process = processBuilder.start()
-            val output = process.inputStream.bufferedReader().readText()
+            // 使用 UTF-8 编码读取 Python 脚本的输出（Python 脚本输出为 UTF-8）
+            val output = process.inputStream.bufferedReader(Charsets.UTF_8).readText()
             val exitCode = process.waitFor()
 
             // 解析 JSON 输出
@@ -131,6 +157,71 @@ class PythonExecutor(
                 message = "执行脚本失败: ${e.message}"
             )
         }
+    }
+
+    /**
+     * 获取脚本文件的完整路径
+     *
+     * 优先使用 scriptPathProvider（用于打包后的应用）
+     * 如果没有提供，则使用开发环境的相对路径
+     *
+     * @param scriptName 脚本文件名
+     * @return 脚本文件的绝对路径
+     */
+    private fun getScriptFilePath(scriptName: String): String {
+        // 如果提供了脚本路径提供者，使用它获取路径
+        scriptPathProvider?.let {
+            return it.getScriptPath(scriptName)
+        }
+
+        // 开发环境：使用相对路径
+        val projectRoot = System.getProperty("user.dir") ?: ""
+        return File(projectRoot, "$SCRIPTS_RELATIVE_PATH/$scriptName").absolutePath
+    }
+
+    /**
+     * 获取 BaseFileWebHookAppFramework.pkl 的路径
+     *
+     * 优先使用 scriptPathProvider（用于打包后的应用），
+     * 否则使用开发环境的相对路径
+     *
+     * @return 元指令文件的绝对路径
+     */
+    fun getBaseFrameworkFilePath(): String {
+        // 如果提供了脚本路径提供者，使用它获取路径
+        scriptPathProvider?.let {
+            return it.getBaseFrameworkPath()
+        }
+
+        // 开发环境：使用相对路径
+        val projectRoot = System.getProperty("user.dir") ?: ""
+        return "$projectRoot/$SCRIPTS_RELATIVE_PATH/BaseFileWebHookAppFramework.pkl"
+    }
+
+    /**
+     * 检查是否在开发环境中运行
+     *
+     * @return true 如果是开发环境
+     */
+    fun isDevEnvironment(): Boolean {
+        val userDir = System.getProperty("user.dir") ?: return false
+        val sourcePath = File(userDir, "composeApp/src/commonMain/kotlin/shadowbot")
+        return sourcePath.exists() && sourcePath.isDirectory
+    }
+
+    /**
+     * 获取开发环境的资源保存路径（用于开发者指令转储）
+     *
+     * 开发者转储的元指令文件会保存到 desktopMain/resources/scripts 目录，
+     * 这样打包时会被包含到安装包中
+     *
+     * @return 保存路径，如果不是开发环境则返回 null
+     */
+    fun getDevResourcesSavePath(): String? {
+        if (!isDevEnvironment()) return null
+
+        val userDir = System.getProperty("user.dir") ?: return null
+        return File(userDir, "composeApp/src/desktopMain/resources/scripts/BaseFileWebHookAppFramework.pkl").absolutePath
     }
 
     /**

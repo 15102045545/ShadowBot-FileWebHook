@@ -39,8 +39,6 @@ import ui.screens.user.UserListScreen
 import ui.screens.user.UserViewModel
 import ui.screens.userpermission.UserPermissionScreen
 import ui.screens.userpermission.UserPermissionViewModel
-import ui.screens.queue.QueueManagementScreen
-import ui.screens.queue.QueueManagementViewModel
 import ui.theme.FileWebHookTheme
 import ui.theme.ShadowBotOutline
 
@@ -56,8 +54,8 @@ import ui.theme.ShadowBotOutline
 @Composable
 fun App() {
     FileWebHookTheme {
-        // 当前选中的页面
-        var currentScreen by remember { mutableStateOf(Screen.TRIGGERS) }
+        // 当前选中的页面（默认为核心状态页面）
+        var currentScreen by remember { mutableStateOf(Screen.SETTINGS) }
         // 触发器记录页面的筛选参数（从触发器页面跳转时使用）
         var executionLogFilterTriggerId by remember { mutableStateOf<Long?>(null) }
 
@@ -76,12 +74,8 @@ fun App() {
         val userViewModel = remember { UserViewModel(userRepository, triggerRepository, permissionRepository) }
         val settingsViewModel = remember { SettingsViewModel(settingsRepository, server, taskQueue) }
         val executionLogViewModel = remember { ExecutionLogViewModel(executionLogRepository, triggerRepository, userRepository) }
-        val queueManagementViewModel = remember { QueueManagementViewModel(taskQueue) }
         val userPermissionViewModel = remember { UserPermissionViewModel(permissionRepository, userRepository, settingsRepository) }
         val developerViewModel = remember { DeveloperViewModel(pythonExecutor) }
-
-        // 项目根目录路径（用于开发者功能页面）
-        val projectRootPath = remember { System.getProperty("user.dir") ?: "" }
 
         // 启动时自动启动服务
         LaunchedEffect(Unit) {
@@ -124,9 +118,6 @@ fun App() {
                             currentScreen = Screen.EXECUTION_LOGS
                         }
                     )
-                    Screen.QUEUE_MANAGEMENT -> QueueManagementScreen(
-                        viewModel = queueManagementViewModel
-                    )
                     Screen.EXECUTION_LOGS -> ExecutionLogListScreen(
                         viewModel = executionLogViewModel,
                         initialTriggerId = executionLogFilterTriggerId
@@ -135,8 +126,7 @@ fun App() {
                     Screen.USER_PERMISSIONS -> UserPermissionScreen(viewModel = userPermissionViewModel)
                     Screen.SETTINGS -> SettingsScreen(viewModel = settingsViewModel)
                     Screen.DEVELOPER -> DeveloperScreen(
-                        viewModel = developerViewModel,
-                        projectRootPath = projectRootPath
+                        viewModel = developerViewModel
                     )
                 }
             }

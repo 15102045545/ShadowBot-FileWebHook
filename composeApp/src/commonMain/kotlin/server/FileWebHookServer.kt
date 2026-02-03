@@ -110,16 +110,4 @@ class FileWebHookServer(
         isRunning = false
     }
 
-    /**
-     * 重启服务器
-     *
-     * 先停止再启动，可用于端口变更后的重启
-     *
-     * @param port 新端口，默认使用当前端口
-     * @param host 绑定地址，默认 0.0.0.0
-     */
-    fun restart(port: Int = currentPort, host: String = "0.0.0.0") {
-        stop()
-        start(port, host)
-    }
 }

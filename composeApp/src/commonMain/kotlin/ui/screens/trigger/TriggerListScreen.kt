@@ -53,13 +53,9 @@ fun TriggerListScreen(
     val triggers by viewModel.triggers
     val isLoading by viewModel.isLoading
     val copyFrameworkMessage by viewModel.copyFrameworkMessage
-    val copyFrameworkSuccess by viewModel.copyFrameworkSuccess
     val isCopyingFramework by viewModel.isCopyingFramework
     val scope = rememberCoroutineScope()
     val clipboardManager = LocalClipboardManager.current
-
-    // 项目根目录路径
-    val projectRootPath = remember { System.getProperty("user.dir") ?: "" }
 
     // 本地 UI 状态
     var showCreateDialog by remember { mutableStateOf(false) }
@@ -167,7 +163,7 @@ fun TriggerListScreen(
                             IconButton(
                                 onClick = {
                                     scope.launch {
-                                        viewModel.copyFrameworkInstruction(trigger.id, projectRootPath)
+                                        viewModel.copyFrameworkInstruction(trigger.id)
                                     }
                                 },
                                 enabled = !isCopyingFramework

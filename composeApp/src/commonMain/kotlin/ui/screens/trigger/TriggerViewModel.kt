@@ -33,12 +33,6 @@ class TriggerViewModel(
 ) {
     companion object {
         /**
-         * BaseFileWebHookAppFramework.pkl 文件相对路径
-         */
-        private const val BASE_FRAMEWORK_RELATIVE_PATH =
-            "composeApp/src/commonMain/kotlin/shadowbot/BaseFileWebHookAppFramework.pkl"
-
-        /**
          * 修改后的指令文件名
          */
         private const val MODIFIED_INSTRUCTION_FILENAME = "ShadowbotAppFormwork_InstructData.pkl"
@@ -160,9 +154,8 @@ class TriggerViewModel(
      * 替换变量后写入触发器目录下的临时文件，再从临时文件恢复到剪贴板
      *
      * @param triggerId 触发器 ID
-     * @param projectRootPath 项目根目录路径
      */
-    suspend fun copyFrameworkInstruction(triggerId: Long, projectRootPath: String) {
+    suspend fun copyFrameworkInstruction(triggerId: Long) {
         _isCopyingFramework.value = true
         _copyFrameworkMessage.value = null
 
@@ -170,11 +163,14 @@ class TriggerViewModel(
             // 获取当前设置
             val settings = settingsRepository.getSettings()
 
-            // 输入文件路径（元指令文件）
-            val inputPath = "$projectRootPath/$BASE_FRAMEWORK_RELATIVE_PATH"
+            // 获取固定的触发器文件路径
+            val triggerFilesPath = data.model.AppSettings.getTriggerFilesPath()
+
+            // 输入文件路径（元指令文件）- 使用 PythonExecutor 提供的路径
+            val inputPath = pythonExecutor.getBaseFrameworkFilePath()
 
             // 输出目录
-            val outputDir = "${settings.triggerFilesPath}/$triggerId"
+            val outputDir = "$triggerFilesPath/$triggerId"
 
             // 输出文件路径（修改后的指令文件）
             val outputPath = "$outputDir/$MODIFIED_INSTRUCTION_FILENAME"
@@ -193,7 +189,7 @@ class TriggerViewModel(
                     inputPath = inputPath,
                     outputPath = outputPath,
                     triggerId = triggerId,
-                    triggerFilesPath = settings.triggerFilesPath,
+                    triggerFilesPath = triggerFilesPath,
                     serverIpAndPort = serverIpAndPort
                 )
             }

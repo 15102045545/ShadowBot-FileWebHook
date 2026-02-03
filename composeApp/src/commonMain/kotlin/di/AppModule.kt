@@ -14,6 +14,7 @@ import data.repository.*
 import domain.clipboard.ClipboardManager
 import domain.python.PythonExecutor
 import domain.python.ShadowBotPythonFinder
+import domain.python.createScriptPathProvider
 import domain.queue.TaskQueue
 import domain.service.FileService
 import org.koin.core.module.dsl.singleOf
@@ -61,8 +62,8 @@ val domainModule = module {
     // 影刀 Python 解释器查找器
     singleOf(::ShadowBotPythonFinder)
 
-    // Python 脚本执行器
-    single { PythonExecutor(get(), get()) }
+    // Python 脚本执行器（使用平台特定的脚本路径提供者）
+    single { PythonExecutor(get(), get(), createScriptPathProvider()) }
 }
 
 /**

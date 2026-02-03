@@ -31,13 +31,13 @@ class SettingsRepository(private val database: FileWebHookDatabase) {
      *
      * 从数据库读取所有配置项，组装为 AppSettings 对象
      * 对于缺失的配置项，使用 AppSettings.DEFAULT 中定义的默认值
+     * 注意：触发器文件路径固定为用户目录/.filewebhook/triggerFiles，不在此处配置
      *
      * 默认值说明（来自 AppSettings.DEFAULT）：
-     * - triggerFilesPath: {user.home}/.filewebhook/triggerFiles（动态计算）
-     * - globalQueueMaxLength: 2
+     * - globalQueueMaxLength: 10
      * - fileWebHookName: "xiaokeer"
      * - fileWebHookSecretKey: "123456"
-     * - httpPort: 8089
+     * - httpPort: 58700
      *
      * @return 系统设置对象
      */
@@ -45,13 +45,8 @@ class SettingsRepository(private val database: FileWebHookDatabase) {
         // 查询所有设置项，转换为 Map 便于查找
         val allSettings = queries.selectAllSettings().executeAsList().associate { it.settingKey to it.settingValue }
 
-        // 计算默认触发器文件路径
-        val defaultTriggerFilesPath = File(System.getProperty("user.home"), ".filewebhook/triggerFiles").absolutePath
-
         // 构建设置对象，缺失的配置使用 AppSettings.DEFAULT 中定义的默认值
         AppSettings(
-            triggerFilesPath = allSettings[AppSettings.KEY_TRIGGER_FILES_PATH]
-                ?: defaultTriggerFilesPath,
             globalQueueMaxLength = allSettings[AppSettings.KEY_GLOBAL_QUEUE_MAX_LENGTH]?.toIntOrNull()
                 ?: AppSettings.DEFAULT.globalQueueMaxLength,
             fileWebHookName = allSettings[AppSettings.KEY_FILE_WEBHOOK_NAME]
@@ -87,18 +82,15 @@ class SettingsRepository(private val database: FileWebHookDatabase) {
      */
     suspend fun saveSettings(settings: AppSettings) = withContext(Dispatchers.IO) {
         // 逐项保存配置（使用 UPSERT 语义）
-        queries.upsertSetting(AppSettings.KEY_TRIGGER_FILES_PATH, settings.triggerFilesPath)
         queries.upsertSetting(AppSettings.KEY_GLOBAL_QUEUE_MAX_LENGTH, settings.globalQueueMaxLength.toString())
         queries.upsertSetting(AppSettings.KEY_FILE_WEBHOOK_NAME, settings.fileWebHookName)
         queries.upsertSetting(AppSettings.KEY_FILE_WEBHOOK_SECRET_KEY, settings.fileWebHookSecretKey)
         queries.upsertSetting(AppSettings.KEY_HTTP_PORT, settings.httpPort.toString())
         queries.upsertSetting(AppSettings.KEY_PYTHON_INTERPRETER_PATH, settings.pythonInterpreterPath)
 
-        // 确保触发器文件目录存在
-        // 该目录用于存放各触发器的 request.json 文件
-        if (settings.triggerFilesPath.isNotEmpty()) {
-            File(settings.triggerFilesPath).mkdirs()
-        }
+        // 确保触发器文件目录存在（使用固定路径）
+        val triggerFilesPath = AppSettings.getTriggerFilesPath()
+        File(triggerFilesPath).mkdirs()
     }
 
     /**
@@ -106,13 +98,13 @@ class SettingsRepository(private val database: FileWebHookDatabase) {
      *
      * 检查 settings 表是否为空，如果为空则写入默认配置
      * 该方法应在应用启动时调用，确保数据库中存在初始配置
+     * 同时确保触发器文件目录存在
      *
      * 默认值来源：AppSettings.DEFAULT
-     * - triggerFilesPath: {user.home}/.filewebhook/triggerFiles
-     * - globalQueueMaxLength: 2
+     * - globalQueueMaxLength: 10
      * - fileWebHookName: "xiaokeer"
      * - fileWebHookSecretKey: "123456"
-     * - httpPort: 8089
+     * - httpPort: 58700
      */
     suspend fun initializeDefaultSettings() = withContext(Dispatchers.IO) {
         // 检查数据库是否已有设置
@@ -120,16 +112,12 @@ class SettingsRepository(private val database: FileWebHookDatabase) {
 
         // 如果数据库为空，写入默认配置
         if (existingSettings.isEmpty()) {
-            // 计算默认触发器文件路径
-            val defaultTriggerFilesPath = File(System.getProperty("user.home"), ".filewebhook/triggerFiles").absolutePath
-
-            // 创建包含所有默认值的设置对象
-            val defaultSettings = AppSettings.DEFAULT.copy(
-                triggerFilesPath = defaultTriggerFilesPath
-            )
-
             // 保存默认设置到数据库
-            saveSettings(defaultSettings)
+            saveSettings(AppSettings.DEFAULT)
         }
+
+        // 确保触发器文件目录存在（使用固定路径）
+        val triggerFilesPath = AppSettings.getTriggerFilesPath()
+        File(triggerFilesPath).mkdirs()
     }
 }

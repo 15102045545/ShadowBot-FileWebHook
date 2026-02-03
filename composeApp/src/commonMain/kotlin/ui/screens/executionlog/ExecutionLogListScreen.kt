@@ -8,6 +8,8 @@
 package ui.screens.executionlog
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material.icons.filled.NavigateBefore
@@ -404,7 +406,10 @@ private fun FilterDialog(
         title = { Text("筛选条件") },
         text = {
             Column(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // 触发器筛选

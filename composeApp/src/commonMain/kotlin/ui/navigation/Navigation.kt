@@ -17,9 +17,6 @@ enum class Screen(val title: String) {
     /** 触发器管理页面 */
     TRIGGERS("触发器管理"),
 
-    /** 队列管理页面 */
-    QUEUE_MANAGEMENT("队列管理"),
-
     /** 触发器记录管理页面 */
     EXECUTION_LOGS("触发器记录管理"),
 
@@ -29,9 +26,21 @@ enum class Screen(val title: String) {
     /** 用户权限管理页面 */
     USER_PERMISSIONS("用户权限管理"),
 
-    /** 软件配置页面 */
-    SETTINGS("软件配置"),
+    /** 核心状态页面 */
+    SETTINGS("核心状态"),
 
     /** 开发者功能页面 */
     DEVELOPER("开发者功能")
+}
+
+/**
+ * 侧边栏菜单分组
+ *
+ * 定义可展开的菜单分组
+ */
+enum class MenuGroup(val title: String) {
+    /** 触发器分组 */
+    TRIGGER("触发器"),
+    /** 用户分组 */
+    USER("用户")
 }
