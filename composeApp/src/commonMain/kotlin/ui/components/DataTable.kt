@@ -14,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -86,7 +87,7 @@ fun <T> DataTable(
         }
 
         // 表头分割线
-        Divider(color = ShadowBotOutline)
+        HorizontalDivider(Modifier, DividerDefaults.Thickness, color = ShadowBotOutline)
 
         // 表体（使用 LazyColumn 支持大数据量滚动）
         LazyColumn {

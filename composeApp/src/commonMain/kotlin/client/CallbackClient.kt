@@ -97,12 +97,4 @@ class CallbackClient {
         return "$normalizedBase/$fileWebHookName/filewebhook/notify"
     }
 
-    /**
-     * 关闭客户端
-     *
-     * 释放 HTTP 客户端资源，应用退出时调用
-     */
-    fun close() {
-        client.close()
-    }
 }

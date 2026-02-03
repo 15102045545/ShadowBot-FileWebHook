@@ -51,7 +51,7 @@ val domainModule = module {
     singleOf(::CallbackClient)
 
     // 文件服务（管理 request.json）
-    single { FileService(get(), get()) }
+    single { FileService(get()) }
 
     // 任务队列（核心调度组件）
     single { TaskQueue(get(), get(), get(), get(), get()) }

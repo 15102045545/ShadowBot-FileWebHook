@@ -114,53 +114,7 @@ git push origin feature/your-feature-name
 ### 项目结构说明
 
 ```
-composeApp/src/
-├── commonMain/          # 跨平台通用代码
-│   ├── kotlin/
-│   │   ├── data/        # 数据层
-│   │   ├── domain/      # 业务层
-│   │   ├── server/      # HTTP 服务
-│   │   ├── client/      # HTTP 客户端
-│   │   ├── di/          # 依赖注入
-│   │   └── ui/          # UI 层
-│   └── sqldelight/      # SQL 定义
-└── desktopMain/         # Desktop 平台特定代码
-```
 
-## 代码风格
-
-### Kotlin
-
-- 使用 4 空格缩进
-- 类名使用 PascalCase
-- 函数名和变量名使用 camelCase
-- 常量使用 SCREAMING_SNAKE_CASE
-- 文件顶部添加中文模块说明注释
-
-### Compose
-
-- Composable 函数名使用 PascalCase
-- 参数按照 Compose 惯例排序：必需参数 → modifier → 可选参数 → 回调
-- 使用 `remember` 和 `mutableStateOf` 管理状态
-
-### 注释
-
-- 所有公共 API 需要 KDoc 注释
-- 复杂逻辑需要行内注释说明
-- 注释使用中文
-
-示例：
-```kotlin
-/**
- * 用户仓库类
- *
- * 封装所有用户相关的数据库操作
- *
- * @property database SQLDelight 生成的数据库实例
- */
-class UserRepository(private val database: FileWebHookDatabase) {
-    // ...
-}
 ```
 
 ## 发布流程

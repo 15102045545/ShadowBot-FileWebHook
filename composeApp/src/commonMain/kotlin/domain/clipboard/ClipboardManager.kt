@@ -60,14 +60,6 @@ sealed class ClipboardResult {
  * @see domain.python.PythonExecutor
  */
 expect class ClipboardManager() {
-    /**
-     * 读取剪贴板中的所有格式数据并保存到文件
-     *
-     * @deprecated 请使用 PythonExecutor.dumpClipboardToFile()
-     * @param savePath 保存文件的路径
-     * @return 操作结果
-     */
-    fun dumpClipboardToFile(savePath: String): ClipboardResult
 
     /**
      * 从文件读取数据并写入剪贴板
@@ -82,18 +74,4 @@ expect class ClipboardManager() {
         replacements: Map<String, String> = emptyMap()
     ): ClipboardResult
 
-    /**
-     * 从源文件读取数据，替换变量后写入目标文件，最后从目标文件恢复到剪贴板
-     *
-     * @deprecated 请使用 PythonExecutor.modifyAndSaveInstructions() + PythonExecutor.loadInstructionsToClipboard()
-     * @param sourcePath 源数据文件路径（元指令文件）
-     * @param targetPath 目标文件路径（填充后的指令文件）
-     * @param replacements 变量替换映射表
-     * @return 操作结果
-     */
-    fun copyWithReplacementsViaFile(
-        sourcePath: String,
-        targetPath: String,
-        replacements: Map<String, String>
-    ): ClipboardResult
 }

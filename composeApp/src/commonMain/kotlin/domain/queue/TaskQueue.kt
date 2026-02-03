@@ -376,7 +376,6 @@ class TaskQueue(
             responseMessage = responseMessage
         )
 
-        // v1.2.0 优化：不再删除 request.json 文件
         // 文件将在下次任务执行时被覆盖，影刀监听文件修改事件
 
         // 获取用户信息以获取回调请求头

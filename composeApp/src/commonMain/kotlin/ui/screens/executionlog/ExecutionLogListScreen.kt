@@ -19,10 +19,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import data.model.ExecutionLog
 import data.model.ExecutionStatus
 import kotlinx.coroutines.launch
-import ui.components.*
+import ui.components.DataTable
+import ui.components.TableCellText
+import ui.components.TableColumn
 
 /**
  * 执行记录列表页面组件

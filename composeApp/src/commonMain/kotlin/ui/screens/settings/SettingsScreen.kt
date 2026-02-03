@@ -26,10 +26,7 @@ import androidx.compose.ui.unit.dp
 import data.model.AppSettings
 import domain.queue.TriggerTask
 import kotlinx.coroutines.launch
-import kotlinx.datetime.Instant
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import ui.components.*
+import ui.components.FormTextField
 import ui.theme.ShadowBotError
 import ui.theme.ShadowBotPink
 import ui.theme.ShadowBotSuccess
@@ -273,7 +270,7 @@ fun SettingsScreen(
                 FormTextField(
                     value = httpPort,
                     onValueChange = { httpPort = it },
-                    label = "HTTP 端口（修改后需重启应用生效）"
+                    label = "HTTP 端口"
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -649,19 +646,3 @@ private fun TaskInfoCompact(label: String, value: String) {
     }
 }
 
-/**
- * 格式化 Instant 为可读时间字符串
- *
- * @param instant 时间戳
- * @return 格式化后的时间字符串
- */
-private fun formatInstant(instant: Instant): String {
-    return try {
-        instant.toLocalDateTime(TimeZone.currentSystemDefault())
-            .toString()
-            .take(19)
-            .replace("T", " ")
-    } catch (e: Exception) {
-        "-"
-    }
-}

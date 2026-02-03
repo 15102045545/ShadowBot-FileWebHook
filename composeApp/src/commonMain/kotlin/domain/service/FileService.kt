@@ -29,11 +29,9 @@ import java.io.File
  * 文件路径格式：{triggerFilesPath}/{triggerId}/request.json
  *
  * @property triggerRepository 触发器仓库，获取触发器配置
- * @property settingsRepository 设置仓库，获取基础路径
  */
 class FileService(
     private val triggerRepository: TriggerRepository,
-    private val settingsRepository: SettingsRepository
 ) {
     /** JSON 序列化器 */
     private val json = Json {
@@ -102,57 +100,4 @@ class FileService(
         }
     }
 
-    /**
-     * 删除 request.json 文件
-     *
-     * v1.2.0 注意：当前版本不再调用此方法
-     * 文件将在下次任务执行时被覆盖，无需显式删除
-     * 保留此方法以备将来需要清理文件时使用
-     *
-     * @param triggerId 触发器 ID
-     * @return Result<Unit> 成功或失败
-     */
-    suspend fun deleteRequestFile(triggerId: Long): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            // 获取触发器信息
-            val trigger = triggerRepository.getTriggerById(triggerId)
-                ?: return@withContext Result.failure(Exception("Trigger not found: $triggerId"))
-
-            // 删除文件（如果存在）
-            val requestFile = File(trigger.folderPath, "request.json")
-            if (requestFile.exists()) {
-                requestFile.delete()
-            }
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    /**
-     * 确保触发器目录存在
-     *
-     * 创建触发器时调用，确保文件夹已创建
-     *
-     * @param triggerId 触发器 ID
-     * @return Result<File> 成功返回目录对象，失败返回异常
-     */
-    suspend fun ensureTriggerDirectory(triggerId: Long): Result<File> = withContext(Dispatchers.IO) {
-        try {
-            // 获取触发器信息
-            val trigger = triggerRepository.getTriggerById(triggerId)
-                ?: return@withContext Result.failure(Exception("Trigger not found: $triggerId"))
-
-            // 创建目录（如果不存在）
-            val triggerDir = File(trigger.folderPath)
-            if (!triggerDir.exists()) {
-                triggerDir.mkdirs()
-            }
-
-            Result.success(triggerDir)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
 }

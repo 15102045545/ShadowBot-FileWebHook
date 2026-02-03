@@ -7,18 +7,11 @@
 
 package domain.python
 
-import data.model.AppSettings
 import data.repository.SettingsRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.boolean
-import kotlinx.serialization.json.int
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.*
 import java.io.File
-import java.util.concurrent.TimeUnit
 
 /**
  * Python 脚本执行结果
@@ -222,15 +215,6 @@ class PythonExecutor(
 
         val userDir = System.getProperty("user.dir") ?: return null
         return File(userDir, "composeApp/src/desktopMain/resources/scripts/BaseFileWebHookAppFramework.pkl").absolutePath
-    }
-
-    /**
-     * 查找影刀 Python 解释器
-     *
-     * @return 查找结果
-     */
-    fun findShadowBotPython(): PythonFinderResult {
-        return pythonFinder.findShadowBotPython()
     }
 
     /**
