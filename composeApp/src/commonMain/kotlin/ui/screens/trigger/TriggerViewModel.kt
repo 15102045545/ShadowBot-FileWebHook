@@ -13,8 +13,7 @@ import data.model.UpdateTriggerRequest
 import data.model.Trigger
 import data.repository.SettingsRepository
 import data.repository.TriggerRepository
-import domain.clipboard.ClipboardManager
-import domain.clipboard.ClipboardResult
+import domain.python.PythonExecutor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -25,19 +24,24 @@ import kotlinx.coroutines.withContext
  *
  * @property triggerRepository 触发器仓库
  * @property settingsRepository 设置仓库
- * @property clipboardManager 剪贴板管理器
+ * @property pythonExecutor Python 脚本执行器
  */
 class TriggerViewModel(
     private val triggerRepository: TriggerRepository,
     private val settingsRepository: SettingsRepository,
-    private val clipboardManager: ClipboardManager
+    private val pythonExecutor: PythonExecutor
 ) {
     companion object {
         /**
-         * BaseFileWebHookAppFramework 文件相对路径
+         * BaseFileWebHookAppFramework.pkl 文件相对路径
          */
         private const val BASE_FRAMEWORK_RELATIVE_PATH =
-            "composeApp/src/commonMain/kotlin/shadowbot/BaseFileWebHookAppFramework"
+            "composeApp/src/commonMain/kotlin/shadowbot/BaseFileWebHookAppFramework.pkl"
+
+        /**
+         * 修改后的指令文件名
+         */
+        private const val MODIFIED_INSTRUCTION_FILENAME = "ShadowbotAppFormwork_InstructData.pkl"
     }
 
     /** 触发器列表状态 */
@@ -152,8 +156,8 @@ class TriggerViewModel(
     /**
      * 复制 FileWebHook-App-Framework 框架指令到剪贴板
      *
-     * 从 BaseFileWebHookAppFramework 文件读取元指令，
-     * 替换变量后先写入触发器目录下的临时文件，再从临时文件恢复到剪贴板
+     * 使用 Python 脚本从 BaseFileWebHookAppFramework.pkl 文件读取元指令，
+     * 替换变量后写入触发器目录下的临时文件，再从临时文件恢复到剪贴板
      *
      * @param triggerId 触发器 ID
      * @param projectRootPath 项目根目录路径
@@ -166,34 +170,52 @@ class TriggerViewModel(
             // 获取当前设置
             val settings = settingsRepository.getSettings()
 
-            // 构建变量替换映射
-            val replacements = mapOf(
-                "triggerId" to triggerId.toString(),
-                "triggerFilesPath" to settings.triggerFilesPath,
-                "serverIpAndPort" to "http://127.0.0.1:${settings.httpPort}"
-            )
+            // 输入文件路径（元指令文件）
+            val inputPath = "$projectRootPath/$BASE_FRAMEWORK_RELATIVE_PATH"
 
-            // 源文件路径（元指令文件）
-            val sourcePath = "$projectRootPath/$BASE_FRAMEWORK_RELATIVE_PATH"
+            // 输出目录
+            val outputDir = "${settings.triggerFilesPath}/$triggerId"
 
-            // 目标文件路径（填充后的指令文件，存放在触发器目录下）
-            val targetPath = "${settings.triggerFilesPath}/$triggerId/FrameworkInstruction"
+            // 输出文件路径（修改后的指令文件）
+            val outputPath = "$outputDir/$MODIFIED_INSTRUCTION_FILENAME"
 
-            // 从源文件读取，替换变量，写入目标文件，最后从目标文件恢复到剪贴板
-            val result = withContext(Dispatchers.IO) {
-                clipboardManager.copyWithReplacementsViaFile(sourcePath, targetPath, replacements)
+            // 确保输出目录存在
+            withContext(Dispatchers.IO) {
+                java.io.File(outputDir).mkdirs()
             }
 
-            when (result) {
-                is ClipboardResult.Success -> {
-                    _copyFrameworkMessage.value = "框架指令已复制到剪贴板"
-                    _copyFrameworkSuccess.value = true
-                }
-                is ClipboardResult.Error -> {
-                    _copyFrameworkMessage.value = result.message
-                    _copyFrameworkSuccess.value = false
-                }
+            // 服务器地址
+            val serverIpAndPort = "http://127.0.0.1:${settings.httpPort}"
+
+            // 步骤1：使用 modify_shadowbot_instructions.py 修改指令并保存到文件
+            val modifyResult = withContext(Dispatchers.IO) {
+                pythonExecutor.modifyAndSaveInstructions(
+                    inputPath = inputPath,
+                    outputPath = outputPath,
+                    triggerId = triggerId,
+                    triggerFilesPath = settings.triggerFilesPath,
+                    serverIpAndPort = serverIpAndPort
+                )
             }
+
+            if (!modifyResult.success) {
+                _copyFrameworkMessage.value = modifyResult.message
+                _copyFrameworkSuccess.value = false
+                return
+            }
+
+            // 步骤2：从文件加载指令到剪贴板
+            val loadResult = withContext(Dispatchers.IO) {
+                pythonExecutor.loadInstructionsToClipboard(outputPath)
+            }
+
+            _copyFrameworkMessage.value = if (loadResult.success) {
+                "框架指令已复制到剪贴板"
+            } else {
+                loadResult.message
+            }
+            _copyFrameworkSuccess.value = loadResult.success
+
         } catch (e: Exception) {
             _copyFrameworkMessage.value = "复制失败: ${e.message}"
             _copyFrameworkSuccess.value = false

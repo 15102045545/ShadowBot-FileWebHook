@@ -12,6 +12,8 @@ import com.filewebhook.db.FileWebHookDatabase
 import data.DatabaseDriverFactory
 import data.repository.*
 import domain.clipboard.ClipboardManager
+import domain.python.PythonExecutor
+import domain.python.ShadowBotPythonFinder
 import domain.queue.TaskQueue
 import domain.service.FileService
 import org.koin.core.module.dsl.singleOf
@@ -53,8 +55,14 @@ val domainModule = module {
     // 任务队列（核心调度组件）
     single { TaskQueue(get(), get(), get(), get(), get()) }
 
-    // 剪贴板管理器（用于影刀指令的读写）
+    // 剪贴板管理器（保留用于兼容性，新代码使用 PythonExecutor）
     singleOf(::ClipboardManager)
+
+    // 影刀 Python 解释器查找器
+    singleOf(::ShadowBotPythonFinder)
+
+    // Python 脚本执行器
+    single { PythonExecutor(get(), get()) }
 }
 
 /**

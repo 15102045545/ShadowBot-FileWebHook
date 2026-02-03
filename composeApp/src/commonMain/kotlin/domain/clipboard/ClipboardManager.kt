@@ -2,9 +2,9 @@
  * 剪贴板管理器 - 公共接口
  *
  * 本文件定义了剪贴板操作的 expect 声明
- * 具体实现在各平台的 actual 实现中（如 desktopMain）
+ * 核心剪贴板操作已迁移到 Python 脚本实现
  *
- * 用于实现影刀指令的跨平台传递功能
+ * 注意：此文件保留是为了兼容性，新功能应使用 PythonExecutor
  */
 
 package domain.clipboard
@@ -54,16 +54,16 @@ sealed class ClipboardResult {
 /**
  * 剪贴板管理器
  *
- * 用于读取和写入系统剪贴板数据
- * 支持影刀自定义剪贴板格式的处理
- * 这是 Kotlin Multiplatform 的 expect/actual 模式
+ * 注意：核心剪贴板操作已迁移到 Python 脚本
+ * 此类保留是为了向后兼容，新代码应使用 PythonExecutor
+ *
+ * @see domain.python.PythonExecutor
  */
 expect class ClipboardManager() {
     /**
      * 读取剪贴板中的所有格式数据并保存到文件
      *
-     * 功能等同于 Python 脚本 ShadowbotAppFormwork_InstructDataCopy.py
-     *
+     * @deprecated 请使用 PythonExecutor.dumpClipboardToFile()
      * @param savePath 保存文件的路径
      * @return 操作结果
      */
@@ -72,8 +72,7 @@ expect class ClipboardManager() {
     /**
      * 从文件读取数据并写入剪贴板
      *
-     * 功能等同于 Python 脚本 ShadowbotAppFormwork_InstructDataPaste.py
-     *
+     * @deprecated 请使用 PythonExecutor.loadInstructionsToClipboard()
      * @param sourcePath 源数据文件路径
      * @param replacements 占位符替换映射表（用于动态修改指令参数）
      * @return 操作结果
@@ -86,8 +85,7 @@ expect class ClipboardManager() {
     /**
      * 从源文件读取数据，替换变量后写入目标文件，最后从目标文件恢复到剪贴板
      *
-     * 流程：读取元指令 → 替换变量 → 写入临时文件 → 从临时文件读取 → 写入剪贴板
-     *
+     * @deprecated 请使用 PythonExecutor.modifyAndSaveInstructions() + PythonExecutor.loadInstructionsToClipboard()
      * @param sourcePath 源数据文件路径（元指令文件）
      * @param targetPath 目标文件路径（填充后的指令文件）
      * @param replacements 变量替换映射表

@@ -18,6 +18,7 @@ import kotlinx.serialization.Serializable
  * @property fileWebHookName 本机 FileWebHook 名称标识，用于回调外部服务时的身份识别
  * @property fileWebHookSecretKey 本机密钥，回调外部服务时携带，用于验证身份
  * @property httpPort HTTP 服务监听端口，默认 8089
+ * @property pythonInterpreterPath Python 解释器路径，空字符串表示自动检测影刀内置 Python
  */
 @Serializable
 data class AppSettings(
@@ -25,7 +26,8 @@ data class AppSettings(
     val globalQueueMaxLength: Int,
     val fileWebHookName: String,
     val fileWebHookSecretKey: String,
-    val httpPort: Int = 8089
+    val httpPort: Int = 8089,
+    val pythonInterpreterPath: String = ""
 ) {
     companion object {
         // ============================================
@@ -47,6 +49,9 @@ data class AppSettings(
         /** HTTP 端口 */
         const val KEY_HTTP_PORT = "httpPort"
 
+        /** Python 解释器路径 */
+        const val KEY_PYTHON_INTERPRETER_PATH = "pythonInterpreterPath"
+
         /**
          * 默认设置
          *
@@ -57,7 +62,8 @@ data class AppSettings(
             globalQueueMaxLength = 10,       // 默认队列容量 50
             fileWebHookName = "xiaokeer",    // 默认名称
             fileWebHookSecretKey = "123456", // 默认密钥
-            httpPort = 58700                  // 默认端口
+            httpPort = 58700,                // 默认端口
+            pythonInterpreterPath = ""       // 空字符串表示自动检测
         )
     }
 }

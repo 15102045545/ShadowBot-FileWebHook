@@ -2,7 +2,7 @@
  * 系统设置页面
  *
  * 本文件提供系统设置的配置界面
- * 包含服务控制、基本配置和身份配置三个部分
+ * 包含服务控制、基本配置、身份配置和Python配置四个部分
  */
 
 package ui.screens.settings
@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,6 +33,7 @@ import ui.theme.ShadowBotSuccess
  * - 服务状态卡片：显示/控制 HTTP 服务器
  * - 基本配置：触发器文件路径、队列长度、HTTP 端口
  * - 身份配置：FileWebHook 名称和密钥
+ * - Python配置：Python 解释器路径
  *
  * @param viewModel 设置 ViewModel
  * @param modifier 修饰符
@@ -45,6 +47,8 @@ fun SettingsScreen(
     val settings by viewModel.settings
     val isLoading by viewModel.isLoading
     val serverRunning by viewModel.serverRunning
+    val detectedPythonPath by viewModel.detectedPythonPath
+    val pythonDetectionMessage by viewModel.pythonDetectionMessage
     val scope = rememberCoroutineScope()
 
     // 表单状态（从当前设置初始化）
@@ -53,6 +57,7 @@ fun SettingsScreen(
     var fileWebHookName by remember(settings) { mutableStateOf(settings.fileWebHookName) }
     var fileWebHookSecretKey by remember(settings) { mutableStateOf(settings.fileWebHookSecretKey) }
     var httpPort by remember(settings) { mutableStateOf(settings.httpPort.toString()) }
+    var pythonInterpreterPath by remember(settings) { mutableStateOf(settings.pythonInterpreterPath) }
 
     // UI 状态
     var snackbarMessage by remember { mutableStateOf<String?>(null) }
@@ -61,15 +66,18 @@ fun SettingsScreen(
     // 页面加载时获取数据
     LaunchedEffect(Unit) {
         viewModel.loadSettings()
+        // 自动检测 Python 解释器
+        viewModel.detectPythonInterpreter()
     }
 
     // 追踪表单变更（用于启用/禁用保存按钮）
-    LaunchedEffect(triggerFilesPath, queueMaxLength, fileWebHookName, fileWebHookSecretKey, httpPort) {
+    LaunchedEffect(triggerFilesPath, queueMaxLength, fileWebHookName, fileWebHookSecretKey, httpPort, pythonInterpreterPath) {
         hasChanges = triggerFilesPath != settings.triggerFilesPath ||
                 queueMaxLength != settings.globalQueueMaxLength.toString() ||
                 fileWebHookName != settings.fileWebHookName ||
                 fileWebHookSecretKey != settings.fileWebHookSecretKey ||
-                httpPort != settings.httpPort.toString()
+                httpPort != settings.httpPort.toString() ||
+                pythonInterpreterPath != settings.pythonInterpreterPath
     }
 
     Column(
@@ -254,6 +262,93 @@ fun SettingsScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // ==========================================
+        // Python 配置卡片
+        // ==========================================
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Python 配置",
+                    style = MaterialTheme.typography.titleMedium
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = "用于执行影刀指令的剪贴板操作，优先使用影刀内置 Python",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Python 解释器路径
+                FormTextField(
+                    value = pythonInterpreterPath,
+                    onValueChange = { pythonInterpreterPath = it },
+                    label = "Python 解释器路径",
+                    supportingText = "留空则自动检测影刀内置 Python"
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // 自动检测按钮和结果
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // 检测结果
+                    Column(modifier = Modifier.weight(1f)) {
+                        if (detectedPythonPath.isNotBlank()) {
+                            Text(
+                                text = "检测到: $detectedPythonPath",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = ShadowBotSuccess
+                            )
+                        }
+                        pythonDetectionMessage?.let { message ->
+                            Text(
+                                text = message,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (detectedPythonPath.isBlank()) ShadowBotError else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    // 自动检测按钮
+                    OutlinedButton(
+                        onClick = {
+                            scope.launch {
+                                viewModel.detectPythonInterpreter()
+                            }
+                        }
+                    ) {
+                        Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("自动检测")
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // 使用检测到的路径
+                    if (detectedPythonPath.isNotBlank()) {
+                        Button(
+                            onClick = {
+                                pythonInterpreterPath = detectedPythonPath
+                            }
+                        ) {
+                            Text("使用检测路径")
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // ==========================================
         // 保存按钮
         // ==========================================
         Row(
@@ -269,7 +364,8 @@ fun SettingsScreen(
                             globalQueueMaxLength = queueMaxLength.toIntOrNull() ?: 50,
                             fileWebHookName = fileWebHookName,
                             fileWebHookSecretKey = fileWebHookSecretKey,
-                            httpPort = httpPort.toIntOrNull() ?: 8089
+                            httpPort = httpPort.toIntOrNull() ?: 8089,
+                            pythonInterpreterPath = pythonInterpreterPath
                         )
                         // 保存设置
                         val result = viewModel.saveSettings(newSettings)

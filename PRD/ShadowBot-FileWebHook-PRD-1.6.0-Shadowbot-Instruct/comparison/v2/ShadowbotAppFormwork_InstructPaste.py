@@ -5,7 +5,7 @@ import win32clipboard
 
 def load_file_to_clipboard():
     # 定义文件保存的路径
-    file_dir = r"C:\project\ShadowBot-FileWebHook\shadowbot"
+    file_dir = r"/PRD/shadowbot"
     file_path = os.path.join(file_dir, "InstructData")
 
     if not os.path.exists(file_path):

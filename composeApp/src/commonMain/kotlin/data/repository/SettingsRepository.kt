@@ -59,7 +59,9 @@ class SettingsRepository(private val database: FileWebHookDatabase) {
             fileWebHookSecretKey = allSettings[AppSettings.KEY_FILE_WEBHOOK_SECRET_KEY]
                 ?: AppSettings.DEFAULT.fileWebHookSecretKey,
             httpPort = allSettings[AppSettings.KEY_HTTP_PORT]?.toIntOrNull()
-                ?: AppSettings.DEFAULT.httpPort
+                ?: AppSettings.DEFAULT.httpPort,
+            pythonInterpreterPath = allSettings[AppSettings.KEY_PYTHON_INTERPRETER_PATH]
+                ?: AppSettings.DEFAULT.pythonInterpreterPath
         )
     }
 
@@ -90,6 +92,7 @@ class SettingsRepository(private val database: FileWebHookDatabase) {
         queries.upsertSetting(AppSettings.KEY_FILE_WEBHOOK_NAME, settings.fileWebHookName)
         queries.upsertSetting(AppSettings.KEY_FILE_WEBHOOK_SECRET_KEY, settings.fileWebHookSecretKey)
         queries.upsertSetting(AppSettings.KEY_HTTP_PORT, settings.httpPort.toString())
+        queries.upsertSetting(AppSettings.KEY_PYTHON_INTERPRETER_PATH, settings.pythonInterpreterPath)
 
         // 确保触发器文件目录存在
         // 该目录用于存放各触发器的 request.json 文件

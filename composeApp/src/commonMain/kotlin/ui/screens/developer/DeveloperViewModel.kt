@@ -3,14 +3,13 @@
  *
  * 本文件提供开发者功能页面的状态管理和业务逻辑
  * 主要功能：
- * 1. 将系统剪贴板中的影刀指令转储到文件
+ * 1. 将系统剪贴板中的影刀指令转储到文件（使用 Python 脚本）
  */
 
 package ui.screens.developer
 
 import androidx.compose.runtime.*
-import domain.clipboard.ClipboardManager
-import domain.clipboard.ClipboardResult
+import domain.python.PythonExecutor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -19,18 +18,18 @@ import kotlinx.coroutines.withContext
  *
  * 管理开发者功能页面的 UI 状态和业务逻辑
  *
- * @property clipboardManager 剪贴板管理器
+ * @property pythonExecutor Python 脚本执行器
  */
 class DeveloperViewModel(
-    private val clipboardManager: ClipboardManager
+    private val pythonExecutor: PythonExecutor
 ) {
     companion object {
         /**
-         * BaseFileWebHookAppFramework 文件保存路径
+         * BaseFileWebHookAppFramework.pkl 文件保存路径
          * 相对于项目根目录
          */
         private const val BASE_FRAMEWORK_RELATIVE_PATH =
-            "composeApp/src/commonMain/kotlin/shadowbot/BaseFileWebHookAppFramework"
+            "composeApp/src/commonMain/kotlin/shadowbot/BaseFileWebHookAppFramework.pkl"
     }
 
     /** 加载中状态 */
@@ -52,8 +51,8 @@ class DeveloperViewModel(
     /**
      * 转储系统剪贴板中的影刀指令到文件
      *
-     * 将剪贴板中的所有格式数据（包括影刀自定义格式）
-     * 序列化保存到 BaseFileWebHookAppFramework 文件
+     * 使用 Python 脚本将剪贴板中的所有格式数据（包括影刀自定义格式）
+     * 序列化保存到 BaseFileWebHookAppFramework.pkl 文件
      *
      * @param projectRootPath 项目根目录路径
      */
@@ -63,20 +62,13 @@ class DeveloperViewModel(
             val savePath = "$projectRootPath/$BASE_FRAMEWORK_RELATIVE_PATH"
 
             val result = withContext(Dispatchers.IO) {
-                clipboardManager.dumpClipboardToFile(savePath)
+                pythonExecutor.dumpClipboardToFile(savePath)
             }
 
-            when (result) {
-                is ClipboardResult.Success -> {
-                    _resultMessage.value = result.message
-                    _isSuccess.value = true
-                }
-                is ClipboardResult.Error -> {
-                    _resultMessage.value = result.message
-                    _isSuccess.value = false
-                }
-            }
+            _resultMessage.value = result.message
+            _isSuccess.value = result.success
             _showResultDialog.value = true
+
         } catch (e: Exception) {
             _resultMessage.value = "转储失败: ${e.message}"
             _isSuccess.value = false

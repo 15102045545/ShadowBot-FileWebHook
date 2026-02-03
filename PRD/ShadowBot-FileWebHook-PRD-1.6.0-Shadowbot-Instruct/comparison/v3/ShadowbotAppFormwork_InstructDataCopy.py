@@ -12,7 +12,7 @@ import os
 import sys
 
 # 目标保存路径
-SAVE_PATH = r"C:\project\ShadowBot-FileWebHook\shadowbot\InstructData"
+SAVE_PATH = r"/PRD/shadowbot/InstructData"
 
 
 def get_all_clipboard_formats():

@@ -10,6 +10,8 @@ package ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Divider
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -19,7 +21,7 @@ import data.repository.PermissionRepository
 import data.repository.SettingsRepository
 import data.repository.TriggerRepository
 import data.repository.UserRepository
-import domain.clipboard.ClipboardManager
+import domain.python.PythonExecutor
 import domain.queue.TaskQueue
 import org.koin.compose.koinInject
 import server.FileWebHookServer
@@ -67,16 +69,16 @@ fun App() {
         val executionLogRepository = koinInject<ExecutionLogRepository>()
         val server = koinInject<FileWebHookServer>()
         val taskQueue = koinInject<TaskQueue>()
-        val clipboardManager = koinInject<ClipboardManager>()
+        val pythonExecutor = koinInject<PythonExecutor>()
 
         // 创建 ViewModel 实例（使用 remember 保持实例稳定）
-        val triggerViewModel = remember { TriggerViewModel(triggerRepository, settingsRepository, clipboardManager) }
+        val triggerViewModel = remember { TriggerViewModel(triggerRepository, settingsRepository, pythonExecutor) }
         val userViewModel = remember { UserViewModel(userRepository, triggerRepository, permissionRepository) }
         val settingsViewModel = remember { SettingsViewModel(settingsRepository, server, taskQueue) }
         val executionLogViewModel = remember { ExecutionLogViewModel(executionLogRepository, triggerRepository, userRepository) }
         val queueManagementViewModel = remember { QueueManagementViewModel(taskQueue) }
         val userPermissionViewModel = remember { UserPermissionViewModel(permissionRepository, userRepository, settingsRepository) }
-        val developerViewModel = remember { DeveloperViewModel(clipboardManager) }
+        val developerViewModel = remember { DeveloperViewModel(pythonExecutor) }
 
         // 项目根目录路径（用于开发者功能页面）
         val projectRootPath = remember { System.getProperty("user.dir") ?: "" }
@@ -105,8 +107,9 @@ fun App() {
             )
 
             // 分割线
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.fillMaxHeight().width(1.dp),
+                thickness = DividerDefaults.Thickness,
                 color = ShadowBotOutline
             )
 

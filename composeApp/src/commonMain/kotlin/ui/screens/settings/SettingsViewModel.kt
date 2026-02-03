@@ -10,6 +10,7 @@ package ui.screens.settings
 import androidx.compose.runtime.*
 import data.model.AppSettings
 import data.repository.SettingsRepository
+import domain.python.ShadowBotPythonFinder
 import domain.queue.TaskQueue
 import server.FileWebHookServer
 
@@ -21,11 +22,13 @@ import server.FileWebHookServer
  * @property settingsRepository 设置仓库
  * @property server HTTP 服务器实例
  * @property taskQueue 任务队列实例
+ * @property pythonFinder Python 解释器查找器
  */
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
     private val server: FileWebHookServer,
-    private val taskQueue: TaskQueue
+    private val taskQueue: TaskQueue,
+    private val pythonFinder: ShadowBotPythonFinder = ShadowBotPythonFinder()
 ) {
     /** 当前设置状态 */
     private val _settings = mutableStateOf(AppSettings.DEFAULT)
@@ -42,6 +45,14 @@ class SettingsViewModel(
     /** 当前队列大小 */
     private val _queueSize = mutableStateOf(0)
     val queueSize: State<Int> = _queueSize
+
+    /** 检测到的 Python 解释器路径 */
+    private val _detectedPythonPath = mutableStateOf("")
+    val detectedPythonPath: State<String> = _detectedPythonPath
+
+    /** Python 检测消息 */
+    private val _pythonDetectionMessage = mutableStateOf<String?>(null)
+    val pythonDetectionMessage: State<String?> = _pythonDetectionMessage
 
     /**
      * 加载系统设置
@@ -127,6 +138,22 @@ class SettingsViewModel(
         loadSettings()
         if (!_serverRunning.value) {
             startServer()
+        }
+    }
+
+    /**
+     * 检测影刀 Python 解释器
+     *
+     * 自动扫描系统中的影刀安装目录，定位 Python 解释器
+     */
+    fun detectPythonInterpreter() {
+        val result = pythonFinder.findShadowBotPython()
+        if (result.success) {
+            _detectedPythonPath.value = result.pythonPath
+            _pythonDetectionMessage.value = "影刀版本: ${result.shadowbotVersion}, Python ${result.version}"
+        } else {
+            _detectedPythonPath.value = ""
+            _pythonDetectionMessage.value = result.message
         }
     }
 

@@ -3,7 +3,7 @@
  *
  * 本文件提供开发者专用功能界面
  * 主要功能：
- * 1. 将系统剪贴板中的影刀指令转储到 BaseFileWebHookAppFramework 文件
+ * 1. 将系统剪贴板中的影刀指令转储到 BaseFileWebHookAppFramework.pkl 文件
  */
 
 package ui.screens.developer
@@ -189,7 +189,7 @@ fun DeveloperScreen(
                 Text(
                     text = """
                         转储后的指令文件将保存到：
-                        composeApp/src/commonMain/kotlin/shadowbot/BaseFileWebHookAppFramework
+                        composeApp/src/commonMain/kotlin/shadowbot/BaseFileWebHookAppFramework.pkl
 
                         该文件包含 FileWebHook-App-Framework 框架的元指令，
                         用户在触发器管理页面点击"复制框架指令"时，

@@ -5,7 +5,7 @@ import win32clipboard
 
 def save_clipboard_to_file():
     # 定义文件保存的路径
-    file_dir = r"C:\project\ShadowBot-FileWebHook\shadowbot"
+    file_dir = r"/PRD/shadowbot"
     file_path = os.path.join(file_dir, "InstructData")
 
     # 如果目录不存在，则自动创建
