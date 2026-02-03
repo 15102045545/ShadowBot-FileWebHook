@@ -52,11 +52,14 @@ FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解�
 
 从 [Releases](https://github.com/15102045545/ShadowBot-FileWebHook/releases) 页面下载对应平台的安装包：
 
-| 平台 | 文件 |
-|------|-----|
-| Windows | `FileWebHook-x.x.x.msi` |
+| 平台 | 文件                      |
+|------|-------------------------|
+| Windows | `FileWebHook-1.0.0.msi` |
 
-### 从源码构建
+## 使用指南
+待开发者自行补充,AI不要补充
+
+### 从源码开始构建
 
 ```bash
 # 克隆仓库
@@ -90,9 +93,7 @@ cd ShadowBot-FileWebHook
 - 支持通过控制面板卸载
 - 安装目录包含 `uninstall.bat` 卸载脚本（同时清理用户数据）
 
-## 使用指南
 
-待开发者自行补充,AI不要补充
 
 ## 技术架构
 
@@ -239,13 +240,10 @@ composeApp/src/
 
 ## 截图
 
-<p align="center">
-  <img src="docs/images/screenshot-triggers.png" alt="触发器管理" width="45%">
-  <img src="docs/images/screenshot-users.png" alt="用户管理" width="45%">
-</p>
-
-<p align="center">
-  <img src="docs/images/screenshot-settings.png" alt="系统设置" width="45%">
+<p >
+  <img src="docs/images/screenshot-triggers.png" alt="触发器管理" >
+  <img src="docs/images/screenshot-users.png" alt="用户管理" >
+  <img src="docs/images/screenshot-settings.png" alt="系统设置">
 </p>
 
 ## 常见问题
