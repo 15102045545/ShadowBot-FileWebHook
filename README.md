@@ -28,8 +28,10 @@
 
 ## 简介
 
-FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解决影刀应用无法被 HTTP 请求触发的问题。
+FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解决社区版影刀的应用不支持被 HTTP 请求触发的问题。
 
+
+有了 FileWebHook , 您可以让您的影刀应用被任何地区,任何语言,任何平台的服务通过 HTTP 请求轻松触发。
 ## 功能特性
 
 - **将影刀原生触发器高度封装为http触发器** - 开箱即用,开发者仅需要在自己的rpa应用,从上下文件获取http入参即可,无需编写读取文件获取参数的指令
@@ -42,14 +44,31 @@ FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解�
 - **FIFO 任务队列** - 串行执行，确保任务有序处理
 - **现代化 UI** - 基于 Compose Multiplatform 的原生桌面界面
 
+## 截图
+
+<p >
+  <img src="docs/images/img.png" alt="" >
+  <img src="docs/images/img_2.png" alt="" >
+  <img src="docs/images/img_1.png" alt="" >
+</p>
+
+
+## 使用指南
+图文:
+
+[从0到1快速使用FileWebHook.md](./docs/use/从0到1快速使用FileWebHook.md)
+
+[FileWebHook常见使用问题.md](./docs/use/FileWebHook常见使用问题.md)
+
+视频:
+
+[从0到1快速使用FileWebHook.bilibili](https://www.bilibili.com/video/BV18z6UBHE5P)
+
+[FileWebHook流程和原理讲解.bilibili](https://www.bilibili.com/video/BV18z6UBHE5P)
+
 ## 快速开始
 
-### 系统要求
-
-- **操作系统**: Windows 10+
-- **影刀 RPA**: 需安装影刀客户端
-
-### 下载安装
+### 可以 直接下载安装包使用
 
 从 [Releases](https://github.com/15102045545/ShadowBot-FileWebHook/releases) 页面下载对应平台的安装包：
 
@@ -57,10 +76,7 @@ FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解�
 |------|-------------------------|
 | Windows | `FileWebHook-1.0.0.msi` |
 
-## 使用指南
-qq群: 1076549946
-
-### 从源码开始构建
+### 或 从源码构建开始使用
 
 ```bash
 # 克隆仓库
@@ -90,11 +106,12 @@ cd ShadowBot-FileWebHook
 
 **安装包特性：**
 - 自动创建桌面快捷方式
-- 自动创建开始菜单快捷方式
 - 支持通过控制面板卸载
-- 安装目录包含 `uninstall.bat` 卸载脚本（同时清理用户数据）
 
+### 系统要求
 
+- **操作系统**: Windows 10+
+- **影刀 RPA**: 需安装影刀客户端
 
 ## 技术架构
 
@@ -239,33 +256,7 @@ composeApp/src/
    │                            │                                 │
 ```
 
-## 截图
 
-<p >
-  <img src="docs/images/screenshot-triggers.png" alt="触发器管理" >
-  <img src="docs/images/screenshot-users.png" alt="用户管理" >
-  <img src="docs/images/screenshot-settings.png" alt="系统设置">
-</p>
-
-## 常见问题
-
-### Q: 影刀文件触发器没有响应？
-
-1. 确认触发器文件路径配置正确
-2. 确认影刀文件触发器监听的是 `request.json` 文件
-3. 检查文件夹读写权限
-
-### Q: 外部服务收不到回调？
-
-1. 确认回调地址可访问（注意防火墙设置）
-2. 确认用户配置的回调地址格式正确
-3. 检查执行记录中的回调状态
-
-### Q: 队列满了怎么办？
-
-1. 增大「系统设置」中的队列最大长度
-2. 检查影刀机器人执行是否卡住
-3. 考虑增加影刀并发执行能力
 
 ## 贡献指南
 
