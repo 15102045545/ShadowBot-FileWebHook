@@ -66,6 +66,13 @@ FileWebHook 是一个桌面中间件应用，专为 **影刀 RPA** 设计，解�
 
 [FileWebHook流程和原理讲解.bilibili](https://www.bilibili.com/video/BV18z6UBHE5P)
 
+```
+如果提供的文档资源没有解决您的问题，请通过以下方式联系我们：
+🐧🐧影刀RPA-FileWebHook QQ群: 1076549946
+```
+
+
+
 ## 快速开始
 
 ### 可以 直接下载安装包使用
